@@ -2,6 +2,16 @@
   "name": "@bool-ts/entities",
   "version": "1.0.0",
   "module": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BoolTS/entities.git"
+  },
+  "author": "Trần Đức Tâm (Neo)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BoolTS/entities/issues"
+  },
+  "homepage": "https://github.com/BoolTS/entities#readme",
   "devDependencies": {
     "@types/bun": "latest"
   },
