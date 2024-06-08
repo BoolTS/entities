@@ -1,0 +1,14 @@
+{
+  "name": "@bool-ts/entities",
+  "module": "dist/index.js",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "zod": "^3.23.8"
+  }
+}
