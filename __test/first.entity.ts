@@ -16,7 +16,7 @@ export class FirstEntity {
     @ZodSchema(infoSchema)
     public info?: Zod.infer<typeof infoSchema>;
 
-    @ArrayOf(() => SecondEntity)
+    @ArrayOf(() => SecondEntity, { optional: true })
     public __secondEntities?: Array<SecondEntity>;
 
 }

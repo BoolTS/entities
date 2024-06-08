@@ -16,8 +16,8 @@ export class SecondEntity {
     @ZodSchema(infoSchema)
     public info?: Zod.infer<typeof infoSchema>;
 
-    @InstanceOf(FirstEntity, { nullable: true, optional: true })
-    public __firstEntity?: FirstEntity | null;
+    @InstanceOf(FirstEntity, { nullable: true })
+    public __firstEntity: FirstEntity | null;
 
 }
 

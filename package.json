@@ -1,5 +1,6 @@
 {
   "name": "@bool-ts/entities",
+  "version": "1.0.0",
   "module": "dist/index.js",
   "devDependencies": {
     "@types/bun": "latest"
@@ -10,5 +11,9 @@
   "dependencies": {
     "reflect-metadata": "^0.2.2",
     "zod": "^3.23.8"
+  },
+  "scripts": {
+    "test": "bun ./__test/index.ts",
+    "build": "tsc"
   }
 }

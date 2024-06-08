@@ -1,5 +1,5 @@
 import * as Zod from "zod";
-import { entityKey } from "./entity";
+
 import { instanceOf, TOptions } from "../hooks/instanceOf";
 
 
@@ -11,13 +11,9 @@ export const instanceOfKey = "__bool:entity:instanceOf__";
  * @returns 
  */
 export const InstanceOf = <T extends Object>(
-    constructor: new (...args: any[]) => T,
+    initializer: (() => new (...args: any[]) => T) | (new (...args: any[]) => T),
     options?: TOptions
 ) => {
-    if (!Reflect.getOwnMetadataKeys(constructor).includes(entityKey)) {
-        throw Error("The constructor has not registered the entity metadata.");
-    }
-
     return (
         target: Object,
         propertyKey: string
@@ -27,7 +23,8 @@ export const InstanceOf = <T extends Object>(
         Object.defineProperty(target, propertyKey, {
             get: () => tmpValue,
             set: (newValue: any) => {
-                tmpValue = instanceOf(newValue, constructor, options);
+                tmpValue = instanceOf(newValue, !initializer.prototype ?
+                    (initializer as () => new (...args: any[]) => T)() : (initializer as new (...args: any[]) => T), options);
             }
         });
     }
