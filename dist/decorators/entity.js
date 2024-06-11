@@ -1,6 +1,10 @@
-export const entityKey = "__bool:entity__";
-export const Entity = () => (target, context) => {
-    Reflect.defineMetadata(entityKey, undefined, target);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Entity = exports.entityKey = void 0;
+exports.entityKey = "__bool:entity__";
+const Entity = () => (target, context) => {
+    Reflect.defineMetadata(exports.entityKey, undefined, target);
     return target;
 };
-export default Entity;
+exports.Entity = Entity;
+exports.default = exports.Entity;
