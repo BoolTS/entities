@@ -12,11 +12,17 @@ const acceptableSchema = Zod.record(
     Zod.any()
 );
 
-export const instanceOf = <T extends Object>(
+type TInfer<TExtendOptionss extends TOptions, TReturnType> = TExtendOptionss extends undefined ?
+    TReturnType : TExtendOptionss["nullable"] extends true ?
+    TExtendOptionss["optional"] extends true ?
+    (TReturnType | null | undefined) : TReturnType | null : TExtendOptionss["optional"] extends true ?
+    (TReturnType | undefined) : TReturnType;
+
+export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOptions>(
     data: unknown,
-    target: new (...args: any[]) => T,
-    options?: TOptions
-) => {
+    target: new (...args: any[]) => TInstance,
+    options?: TExtendOptionss
+): TInfer<TExtendOptionss, TInstance> => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
@@ -35,12 +41,12 @@ export const instanceOf = <T extends Object>(
     }
 
     if (!validation.data) {
-        return validation.data;
+        return validation.data as TInfer<TExtendOptionss, TInstance>;
     }
 
     const instance = new target();
 
     Object.assign(instance, validation.data);
 
-    return instance;
+    return instance as TInfer<TExtendOptionss, TInstance>;
 }

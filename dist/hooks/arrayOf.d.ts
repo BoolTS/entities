@@ -1,2 +1,7 @@
 import { TOptions } from "./instanceOf";
-export declare const arrayOf: <T extends Object>(data: unknown, target: new (...args: any[]) => T, options?: TOptions) => T[] | null | undefined;
+type TInfer<TReturnType, TExtendOptions extends TOptions> = TExtendOptions extends undefined ? TReturnType[] : TExtendOptions["nullable"] extends true ? TExtendOptions["optional"] extends true ? (TReturnType[] | null | undefined) : TReturnType[] | null : TExtendOptions["optional"] extends true ? (TReturnType[] | undefined) : TReturnType[];
+export declare const arrayOf: <TInstance extends Object, TExtendOptions extends Partial<{
+    nullable: boolean;
+    optional: boolean;
+}>>(data: unknown, target: new (...args: any[]) => TInstance, options?: TExtendOptions) => TInfer<TInstance, TExtendOptions>;
+export {};

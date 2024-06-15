@@ -10,11 +10,17 @@ const acceptableSchema = Zod.array(
     )
 );
 
-export const arrayOf = <T extends Object>(
+type TInfer<TReturnType, TExtendOptions extends TOptions> = TExtendOptions extends undefined ?
+    TReturnType[] : TExtendOptions["nullable"] extends true ?
+    TExtendOptions["optional"] extends true ?
+    (TReturnType[] | null | undefined) : TReturnType[] | null : TExtendOptions["optional"] extends true ?
+    (TReturnType[] | undefined) : TReturnType[];
+
+export const arrayOf = <TInstance extends Object, TExtendOptions extends TOptions>(
     data: unknown,
-    target: new (...args: any[]) => T,
-    options?: TOptions
-) => {
+    target: new (...args: any[]) => TInstance,
+    options?: TExtendOptions
+): TInfer<TInstance, TExtendOptions> => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
@@ -33,8 +39,8 @@ export const arrayOf = <T extends Object>(
     }
 
     if (!validation.data) {
-        return validation.data;
+        return validation.data as TInfer<TInstance, TExtendOptions>;
     }
 
-    return validation.data.map(x => instanceOf(x, target)) as Array<T>;
+    return validation.data.map(x => instanceOf(x, target)) as TInfer<TInstance, TExtendOptions>;
 }
