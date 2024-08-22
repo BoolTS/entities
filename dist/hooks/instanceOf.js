@@ -32,10 +32,12 @@ const instanceOf = (data, target, options) => {
         throw Error("The constructor has not registered the entity metadata.");
     }
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable ?
-        acceptableSchema : acceptableSchema.nullable();
-    const optionalAcceptableSchema = !options?.optional ?
-        nullableAcceptableSchema : nullableAcceptableSchema.optional();
+    const nullableAcceptableSchema = !options?.nullable
+        ? acceptableSchema
+        : acceptableSchema.nullable();
+    const optionalAcceptableSchema = !options?.optional
+        ? nullableAcceptableSchema
+        : nullableAcceptableSchema.optional();
     const validation = optionalAcceptableSchema.safeParse(data);
     if (!validation.success) {
         throw validation.error.issues;
@@ -44,7 +46,7 @@ const instanceOf = (data, target, options) => {
         return validation.data;
     }
     const instance = new target();
-    Object.assign(instance, validation.data);
+    Object.assign(instance, data);
     return instance;
 };
 exports.instanceOf = instanceOf;

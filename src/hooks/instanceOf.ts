@@ -2,21 +2,22 @@ import * as Zod from "zod";
 
 import { entityKey } from "../decorators/entity";
 
-
 export type TOptions = Partial<{
     nullable: boolean;
     optional: boolean;
 }>;
 
-const acceptableSchema = Zod.record(
-    Zod.any()
-);
+const acceptableSchema = Zod.record(Zod.any());
 
-type TInfer<TExtendOptionss extends TOptions, TReturnType> = TExtendOptionss extends undefined ?
-    TReturnType : TExtendOptionss["nullable"] extends true ?
-    TExtendOptionss["optional"] extends true ?
-    (TReturnType | null | undefined) : TReturnType | null : TExtendOptionss["optional"] extends true ?
-    (TReturnType | undefined) : TReturnType;
+type TInfer<TExtendOptionss extends TOptions, TReturnType> = TExtendOptionss extends undefined
+    ? TReturnType
+    : TExtendOptionss["nullable"] extends true
+    ? TExtendOptionss["optional"] extends true
+        ? TReturnType | null | undefined
+        : TReturnType | null
+    : TExtendOptionss["optional"] extends true
+    ? TReturnType | undefined
+    : TReturnType;
 
 export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOptions>(
     data: unknown,
@@ -28,11 +29,13 @@ export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOp
     }
 
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable ?
-        acceptableSchema : acceptableSchema.nullable();
+    const nullableAcceptableSchema = !options?.nullable
+        ? acceptableSchema
+        : acceptableSchema.nullable();
 
-    const optionalAcceptableSchema = !options?.optional ?
-        nullableAcceptableSchema : nullableAcceptableSchema.optional();
+    const optionalAcceptableSchema = !options?.optional
+        ? nullableAcceptableSchema
+        : nullableAcceptableSchema.optional();
 
     const validation = optionalAcceptableSchema.safeParse(data);
 
@@ -46,7 +49,7 @@ export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOp
 
     const instance = new target();
 
-    Object.assign(instance, validation.data);
+    Object.assign(instance, data);
 
     return instance as TInfer<TExtendOptionss, TInstance>;
-}
+};

@@ -33,10 +33,12 @@ const arrayOf = (data, target, options) => {
         throw Error("The constructor has not registered the entity metadata.");
     }
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable ?
-        acceptableSchema : acceptableSchema.nullable();
-    const optionalAcceptableSchema = !options?.optional ?
-        nullableAcceptableSchema : nullableAcceptableSchema.optional();
+    const nullableAcceptableSchema = !options?.nullable
+        ? acceptableSchema
+        : acceptableSchema.nullable();
+    const optionalAcceptableSchema = !options?.optional
+        ? nullableAcceptableSchema
+        : nullableAcceptableSchema.optional();
     const validation = optionalAcceptableSchema.safeParse(data);
     if (!validation.success) {
         throw validation.error.issues;
@@ -44,6 +46,6 @@ const arrayOf = (data, target, options) => {
     if (!validation.data) {
         return validation.data;
     }
-    return validation.data.map(x => (0, instanceOf_1.instanceOf)(x, target));
+    return validation.data.map((x) => (0, instanceOf_1.instanceOf)(x, target));
 };
 exports.arrayOf = arrayOf;

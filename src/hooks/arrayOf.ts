@@ -3,18 +3,17 @@ import * as Zod from "zod";
 import { entityKey } from "../decorators/entity";
 import { instanceOf, TOptions } from "./instanceOf";
 
+const acceptableSchema = Zod.array(Zod.record(Zod.any()));
 
-const acceptableSchema = Zod.array(
-    Zod.record(
-        Zod.any()
-    )
-);
-
-type TInfer<TReturnType, TExtendOptions extends TOptions> = TExtendOptions extends undefined ?
-    TReturnType[] : TExtendOptions["nullable"] extends true ?
-    TExtendOptions["optional"] extends true ?
-    (TReturnType[] | null | undefined) : TReturnType[] | null : TExtendOptions["optional"] extends true ?
-    (TReturnType[] | undefined) : TReturnType[];
+type TInfer<TReturnType, TExtendOptions extends TOptions> = TExtendOptions extends undefined
+    ? TReturnType[]
+    : TExtendOptions["nullable"] extends true
+    ? TExtendOptions["optional"] extends true
+        ? TReturnType[] | null | undefined
+        : TReturnType[] | null
+    : TExtendOptions["optional"] extends true
+    ? TReturnType[] | undefined
+    : TReturnType[];
 
 export const arrayOf = <TInstance extends Object, TExtendOptions extends TOptions>(
     data: unknown,
@@ -26,11 +25,13 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TOption
     }
 
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable ?
-        acceptableSchema : acceptableSchema.nullable();
+    const nullableAcceptableSchema = !options?.nullable
+        ? acceptableSchema
+        : acceptableSchema.nullable();
 
-    const optionalAcceptableSchema = !options?.optional ?
-        nullableAcceptableSchema : nullableAcceptableSchema.optional();
+    const optionalAcceptableSchema = !options?.optional
+        ? nullableAcceptableSchema
+        : nullableAcceptableSchema.optional();
 
     const validation = optionalAcceptableSchema.safeParse(data);
 
@@ -42,5 +43,5 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TOption
         return validation.data as TInfer<TInstance, TExtendOptions>;
     }
 
-    return validation.data.map(x => instanceOf(x, target)) as TInfer<TInstance, TExtendOptions>;
-}
+    return validation.data.map((x) => instanceOf(x, target)) as TInfer<TInstance, TExtendOptions>;
+};
