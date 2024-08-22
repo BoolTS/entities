@@ -49,7 +49,7 @@ export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOp
 
     const instance = new target();
 
-    Object.assign(instance, data);
+    Object.assign(instance, validation.data);
 
     return instance as TInfer<TExtendOptionss, TInstance>;
 };

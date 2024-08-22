@@ -16,7 +16,7 @@ const ZodSchema = (schema) => (target, propertyKey) => {
             if (!validation.success) {
                 throw validation.error.issues;
             }
-            tmpValue = validation.data;
+            tmpValue = newValue;
         }
     });
 };

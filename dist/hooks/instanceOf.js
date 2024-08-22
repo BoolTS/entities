@@ -46,7 +46,7 @@ const instanceOf = (data, target, options) => {
         return validation.data;
     }
     const instance = new target();
-    Object.assign(instance, data);
+    Object.assign(instance, validation.data);
     return instance;
 };
 exports.instanceOf = instanceOf;
