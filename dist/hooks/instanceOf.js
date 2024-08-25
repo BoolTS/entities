@@ -37,18 +37,21 @@ const inferZodSchema = (target) => {
                     const lazySchema = Zod.lazy(() => {
                         const classContructor = initializer();
                         const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                        const transformSchema = classConstructorSchema.transform((data) => {
+                        const nullableSchema = !options?.nullable
+                            ? classConstructorSchema
+                            : classConstructorSchema.nullable();
+                        const optionalSchema = !options?.optional
+                            ? nullableSchema
+                            : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
                             const instance = new classContructor();
                             Object.assign(instance, data);
                             return instance;
                         });
-                        const nullableSchema = !options?.nullable
-                            ? transformSchema
-                            : transformSchema.nullable();
-                        const optionalSchema = !options?.optional
-                            ? nullableSchema
-                            : nullableSchema.optional();
-                        return optionalSchema;
+                        return transformSchema;
                     });
                     zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
                         ? lazySchema
@@ -57,20 +60,23 @@ const inferZodSchema = (target) => {
                 }
                 const classContructor = initializer;
                 const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                const transformSchema = classConstructorSchema.transform((data) => {
+                const nullableSchema = !options?.nullable
+                    ? classConstructorSchema
+                    : classConstructorSchema.nullable();
+                const optionalSchema = !options?.optional
+                    ? nullableSchema
+                    : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
                     const instance = new classContructor();
                     Object.assign(instance, data);
                     return instance;
                 });
-                const nullableSchema = !options?.nullable
-                    ? transformSchema
-                    : transformSchema.nullable();
-                const optionalSchema = !options?.optional
-                    ? nullableSchema
-                    : nullableSchema.optional();
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? optionalSchema
-                    : zodSchemaMetadata[key].or(optionalSchema);
+                    ? transformSchema
+                    : zodSchemaMetadata[key].or(transformSchema);
                 return;
             });
         }
