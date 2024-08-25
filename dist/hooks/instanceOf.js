@@ -145,9 +145,6 @@ const instanceOf = (data, target, options) => {
     if (!validation.success) {
         throw validation.error.issues;
     }
-    if (!validation.data) {
-        return validation.data;
-    }
     return validation.data;
 };
 exports.instanceOf = instanceOf;

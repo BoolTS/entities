@@ -32,12 +32,7 @@ export const InstanceOf =
             target.constructor,
             propertyKey
         ) || {
-            [propertyKey]: [
-                {
-                    initializer: initializer,
-                    options: options
-                }
-            ]
+            [propertyKey]: []
         };
 
         if (propertyKey in metadata) {
@@ -48,17 +43,4 @@ export const InstanceOf =
         }
 
         Reflect.defineMetadata(instanceOfKey, metadata, target.constructor);
-
-        // Object.defineProperty(target, propertyKey, {
-        //     get: () => tmpValue,
-        //     set: (newValue: any) => {
-        //         tmpValue = instanceOf(
-        //             newValue,
-        //             !initializer.prototype
-        //                 ? (initializer as () => new (...args: any[]) => T)()
-        //                 : (initializer as new (...args: any[]) => T),
-        //             options
-        //         );
-        //     }
-        // });
     };

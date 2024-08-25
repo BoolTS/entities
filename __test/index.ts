@@ -42,7 +42,11 @@ try {
                 ]
             }
         },
-        SecondEntity
+        SecondEntity,
+        {
+            optional: true,
+            nullable: true
+        }
     );
 
     // const arr = arrayOf(
@@ -72,7 +76,7 @@ try {
     //     SecondEntity
     // );
 
-    console.debug(ins.__firstEntity?.__secondEntities);
+    console.debug(ins?.__firstEntity?.__secondEntities);
 } catch (error) {
     console.error(error);
 }

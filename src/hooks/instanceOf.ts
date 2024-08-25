@@ -177,9 +177,5 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
         throw validation.error.issues;
     }
 
-    if (!validation.data) {
-        return validation.data as TInfer<TExtendOptions, TInstance>;
-    }
-
     return validation.data as TInfer<TExtendOptions, TInstance>;
 };

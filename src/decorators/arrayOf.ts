@@ -21,12 +21,7 @@ export const ArrayOf =
             target.constructor,
             propertyKey
         ) || {
-            [propertyKey]: [
-                {
-                    initializer: initializer,
-                    options: options
-                }
-            ]
+            [propertyKey]: []
         };
 
         if (propertyKey in metadata) {
@@ -37,17 +32,4 @@ export const ArrayOf =
         }
 
         Reflect.defineMetadata(arrayOfKey, metadata, target.constructor);
-
-        // Object.defineProperty(target, propertyKey, {
-        //     get: () => tmpValue,
-        //     set: (newValue: any) => {
-        //         tmpValue = arrayOf(
-        //             newValue,
-        //             !initializer.prototype
-        //                 ? (initializer as () => new (...args: any[]) => T)()
-        //                 : (initializer as new (...args: any[]) => T),
-        //             options
-        //         );
-        //     }
-        // });
     };
