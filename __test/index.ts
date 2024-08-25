@@ -88,5 +88,5 @@ try {
 
     console.debug(ins.__firstEntity?.__secondEntities);
 } catch (error) {
-    console.error(error);
+    console.error(JSON.stringify(error));
 }

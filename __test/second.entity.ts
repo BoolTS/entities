@@ -2,6 +2,7 @@ import * as Zod from "zod";
 
 import { Entity, InstanceOf, ZodSchema } from "../src";
 import { FirstEntity } from "./first.entity";
+import { BaseEntity, idSchema } from "./entity";
 // import { Types } from "mongoose";
 
 // const mongoIdSchema = Zod.instanceof(Types.ObjectId);
@@ -13,10 +14,7 @@ const infoSchema = Zod.object({
 }).optional();
 
 @Entity()
-export class SecondEntity {
-    // @ZodSchema(mongoIdSchema)
-    // _id: Types.ObjectId;
-
+export class SecondEntity extends BaseEntity {
     @ZodSchema(infoSchema)
     public info?: Zod.infer<typeof infoSchema>;
 

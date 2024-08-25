@@ -1,8 +1,8 @@
 import * as Zod from "zod";
 
 import { entityKey } from "../decorators/entity";
-import { inferZodSchema } from "./instanceOf";
 import { TInstanceOfOptions } from "../decorators";
+import { inferZodSchema } from "../ultils";
 
 type TInfer<
     TExtendOptions extends TInstanceOfOptions,
@@ -17,6 +17,15 @@ type TInfer<
     ? TReturnType[] | undefined
     : TReturnType[];
 
+const zodSchemaMapper = new Map<
+    new (...args: any[]) => any,
+    Readonly<{
+        optional: boolean;
+        nullable: boolean;
+        schema: Zod.Schema;
+    }>[]
+>();
+
 export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstanceOfOptions>(
     data: unknown,
     target: new (...args: any[]) => TInstance,
@@ -26,6 +35,55 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstan
         throw Error("The constructor has not registered the entity metadata.");
     }
 
+    const convertedOptions: Required<TInstanceOfOptions> = {
+        optional: options?.optional || false,
+        nullable: options?.nullable || false
+    };
+
+    const cachedSchemas = zodSchemaMapper.get(target);
+    const cachedIndex = !cachedSchemas
+        ? -1
+        : cachedSchemas.findIndex(
+              (schema) =>
+                  schema.optional === convertedOptions.optional &&
+                  schema.nullable === convertedOptions.nullable
+          );
+    const mainSchema =
+        !cachedSchemas || cachedIndex < 0
+            ? generateInstanceOfSchema(target, convertedOptions)
+            : cachedSchemas[cachedIndex].schema;
+
+    if (!cachedSchemas) {
+        zodSchemaMapper.set(target, [
+            Object.freeze({
+                ...convertedOptions,
+                schema: mainSchema
+            })
+        ]);
+    } else if (cachedIndex < 0) {
+        cachedSchemas.push(
+            Object.freeze({
+                ...convertedOptions,
+                schema: mainSchema
+            })
+        );
+
+        zodSchemaMapper.set(target, cachedSchemas);
+    }
+
+    const validation = mainSchema.safeParse(data);
+
+    if (!validation.success) {
+        throw validation.error.issues;
+    }
+
+    return validation.data as TInfer<TExtendOptions, TInstance>;
+};
+
+const generateInstanceOfSchema = (
+    target: new (...args: any[]) => Object,
+    options: TInstanceOfOptions
+) => {
     const instanceZodSchema = inferZodSchema(target);
     const transformSchema = instanceZodSchema.transform((data) => {
         const instance = new target();
@@ -37,11 +95,6 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstan
         ? arrayOfInstanceZodSchema
         : arrayOfInstanceZodSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const validation = optionalSchema.safeParse(data);
 
-    if (!validation.success) {
-        throw validation.error.issues;
-    }
-
-    return validation.data as TInfer<TExtendOptions, TInstance>;
+    return optionalSchema;
 };

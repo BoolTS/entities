@@ -1,6 +1,3 @@
-import * as Zod from "zod";
-
-import { arrayOf } from "../hooks/arrayOf";
 import { TMetadata as TInstanceOfMetdata, TOptions } from "./instanceOf";
 
 export const arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
@@ -18,11 +15,11 @@ export const ArrayOf =
     (target: Object, propertyKey: string) => {
         const metadata: TInstanceOfMetdata<T> = Reflect.getOwnMetadata(
             arrayOfKey,
-            target.constructor,
-            propertyKey
-        ) || {
-            [propertyKey]: []
-        };
+            target.constructor
+        ) ||
+            Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) || {
+                [propertyKey]: []
+            };
 
         if (propertyKey in metadata) {
             metadata[propertyKey].push({

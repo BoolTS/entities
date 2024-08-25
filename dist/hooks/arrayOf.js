@@ -26,12 +26,48 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.arrayOf = void 0;
 const Zod = __importStar(require("zod"));
 const entity_1 = require("../decorators/entity");
-const instanceOf_1 = require("./instanceOf");
+const ultils_1 = require("../ultils");
+const zodSchemaMapper = new Map();
 const arrayOf = (data, target, options) => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entity_1.entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
-    const instanceZodSchema = (0, instanceOf_1.inferZodSchema)(target);
+    const convertedOptions = {
+        optional: options?.optional || false,
+        nullable: options?.nullable || false
+    };
+    const cachedSchemas = zodSchemaMapper.get(target);
+    const cachedIndex = !cachedSchemas
+        ? -1
+        : cachedSchemas.findIndex((schema) => schema.optional === convertedOptions.optional &&
+            schema.nullable === convertedOptions.nullable);
+    const mainSchema = !cachedSchemas || cachedIndex < 0
+        ? generateInstanceOfSchema(target, convertedOptions)
+        : cachedSchemas[cachedIndex].schema;
+    if (!cachedSchemas) {
+        zodSchemaMapper.set(target, [
+            Object.freeze({
+                ...convertedOptions,
+                schema: mainSchema
+            })
+        ]);
+    }
+    else if (cachedIndex < 0) {
+        cachedSchemas.push(Object.freeze({
+            ...convertedOptions,
+            schema: mainSchema
+        }));
+        zodSchemaMapper.set(target, cachedSchemas);
+    }
+    const validation = mainSchema.safeParse(data);
+    if (!validation.success) {
+        throw validation.error.issues;
+    }
+    return validation.data;
+};
+exports.arrayOf = arrayOf;
+const generateInstanceOfSchema = (target, options) => {
+    const instanceZodSchema = (0, ultils_1.inferZodSchema)(target);
     const transformSchema = instanceZodSchema.transform((data) => {
         const instance = new target();
         Object.assign(instance, data);
@@ -42,10 +78,5 @@ const arrayOf = (data, target, options) => {
         ? arrayOfInstanceZodSchema
         : arrayOfInstanceZodSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const validation = optionalSchema.safeParse(data);
-    if (!validation.success) {
-        throw validation.error.issues;
-    }
-    return validation.data;
+    return optionalSchema;
 };
-exports.arrayOf = arrayOf;

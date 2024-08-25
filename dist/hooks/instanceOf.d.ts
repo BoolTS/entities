@@ -1,11 +1,5 @@
-import * as Zod from "zod";
-import { TInstanceOfOptions, TZodSchemaMetadata } from "../decorators";
+import { TInstanceOfOptions } from "../decorators";
 type TInfer<TExtendOptions extends TInstanceOfOptions, TReturnType> = TExtendOptions extends undefined ? TReturnType : TExtendOptions["nullable"] extends true ? TExtendOptions["optional"] extends true ? TReturnType | null | undefined : TReturnType | null : TExtendOptions["optional"] extends true ? TReturnType | undefined : TReturnType;
-export declare const inferZodSchema: <TInstance extends Object>(target: new (...args: any[]) => TInstance) => Zod.ZodObject<TZodSchemaMetadata, "strip", Zod.ZodTypeAny, {
-    [x: string]: any;
-}, {
-    [x: string]: any;
-}>;
 export declare const instanceOf: <TInstance extends Object, TExtendOptions extends Partial<{
     nullable: boolean;
     optional: boolean;

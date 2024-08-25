@@ -27,13 +27,10 @@ export const InstanceOf =
         options?: TOptions
     ) =>
     (target: Object, propertyKey: string) => {
-        const metadata: TMetadata<T> = Reflect.getOwnMetadata(
-            instanceOfKey,
-            target.constructor,
-            propertyKey
-        ) || {
-            [propertyKey]: []
-        };
+        const metadata: TMetadata<T> = Reflect.getOwnMetadata(instanceOfKey, target.constructor) ||
+            Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) || {
+                [propertyKey]: []
+            };
 
         if (propertyKey in metadata) {
             metadata[propertyKey].push({

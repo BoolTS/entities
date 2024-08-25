@@ -1,16 +1,5 @@
-import * as Zod from "zod";
-
-import {
-    arrayOfKey,
-    entityKey,
-    instanceOfKey,
-    TConstructor,
-    TFunctionReturnContructor,
-    TInstanceOfMetadata,
-    TInstanceOfOptions,
-    TZodSchemaMetadata,
-    zodSchemaKey
-} from "../decorators";
+import { entityKey, TInstanceOfOptions } from "../decorators";
+import { inferZodSchema } from "../ultils";
 
 type TInfer<
     TExtendOptions extends TInstanceOfOptions,
@@ -25,144 +14,14 @@ type TInfer<
     ? TReturnType | undefined
     : TReturnType;
 
-export const inferZodSchema = <TInstance extends Object>(
-    target: new (...args: any[]) => TInstance
-) => {
-    const zodSchemaMetadata: TZodSchemaMetadata =
-        Reflect.getOwnMetadata(zodSchemaKey, target) || {};
-    const instanceOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
-        instanceOfKey,
-        target
-    );
-    const arrayOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
-        arrayOfKey,
-        target
-    );
-
-    if (instanceOfMetadata) {
-        for (const key in instanceOfMetadata) {
-            instanceOfMetadata[key].forEach(({ initializer, options }) => {
-                if (!initializer.prototype) {
-                    const lazySchema = Zod.lazy(() => {
-                        const classContructor = (initializer as TFunctionReturnContructor<any>)();
-                        const classConstructorSchema = inferZodSchema(classContructor);
-                        const nullableSchema = !options?.nullable
-                            ? classConstructorSchema
-                            : classConstructorSchema.nullable();
-                        const optionalSchema = !options?.optional
-                            ? nullableSchema
-                            : nullableSchema.optional();
-                        const transformSchema = optionalSchema.transform((data) => {
-                            if (!data) {
-                                return data;
-                            }
-
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-
-                        return transformSchema;
-                    });
-
-                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                        ? lazySchema
-                        : zodSchemaMetadata[key].or(lazySchema);
-
-                    return;
-                }
-
-                const classContructor = initializer as TConstructor<any>;
-                const classConstructorSchema = inferZodSchema(classContructor);
-                const nullableSchema = !options?.nullable
-                    ? classConstructorSchema
-                    : classConstructorSchema.nullable();
-                const optionalSchema = !options?.optional
-                    ? nullableSchema
-                    : nullableSchema.optional();
-                const transformSchema = optionalSchema.transform((data) => {
-                    if (!data) {
-                        return data;
-                    }
-
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
-
-                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? transformSchema
-                    : zodSchemaMetadata[key].or(transformSchema);
-
-                return;
-            });
-        }
-    }
-
-    if (arrayOfMetadata) {
-        for (const key in arrayOfMetadata) {
-            arrayOfMetadata[key].forEach(({ initializer, options }) => {
-                if (!initializer.prototype) {
-                    const lazySchema = Zod.lazy(() => {
-                        const classContructor = (initializer as TFunctionReturnContructor<any>)();
-                        const classConstructorSchema = inferZodSchema(classContructor);
-                        const arrayOfSchema = Zod.array(classConstructorSchema);
-                        const nullableSchema = !options?.nullable
-                            ? arrayOfSchema
-                            : arrayOfSchema.nullable();
-                        const optionalSchema = !options?.optional
-                            ? nullableSchema
-                            : nullableSchema.optional();
-                        const transformSchema = optionalSchema.transform((data) => {
-                            if (!data) {
-                                return data;
-                            }
-
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-
-                        return transformSchema;
-                    });
-
-                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                        ? lazySchema
-                        : zodSchemaMetadata[key].or(lazySchema);
-
-                    return;
-                }
-
-                const classContructor = initializer as TConstructor<any>;
-                const classConstructorSchema = inferZodSchema(classContructor);
-                const arrayOfSchema = Zod.array(classConstructorSchema);
-                const nullableSchema = !options?.nullable
-                    ? arrayOfSchema
-                    : arrayOfSchema.nullable();
-                const optionalSchema = !options?.optional
-                    ? nullableSchema
-                    : nullableSchema.optional();
-                const transformSchema = optionalSchema.transform((data) => {
-                    if (!data) {
-                        return data;
-                    }
-
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
-
-                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? transformSchema
-                    : zodSchemaMetadata[key].or(transformSchema);
-
-                return;
-            });
-        }
-    }
-
-    return Zod.object(zodSchemaMetadata);
-};
+const zodSchemaMapper = new Map<
+    new (...args: any[]) => any,
+    Readonly<{
+        optional: boolean;
+        nullable: boolean;
+        schema: Zod.Schema;
+    }>[]
+>();
 
 export const instanceOf = <TInstance extends Object, TExtendOptions extends TInstanceOfOptions>(
     data: unknown,
@@ -173,6 +32,55 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
         throw Error("The constructor has not registered the entity metadata.");
     }
 
+    const convertedOptions: Required<TInstanceOfOptions> = {
+        optional: options?.optional || false,
+        nullable: options?.nullable || false
+    };
+
+    const cachedSchemas = zodSchemaMapper.get(target);
+    const cachedIndex = !cachedSchemas
+        ? -1
+        : cachedSchemas.findIndex(
+              (schema) =>
+                  schema.optional === convertedOptions.optional &&
+                  schema.nullable === convertedOptions.nullable
+          );
+    const mainSchema =
+        !cachedSchemas || cachedIndex < 0
+            ? generateInstanceOfSchema(target, convertedOptions)
+            : cachedSchemas[cachedIndex].schema;
+
+    if (!cachedSchemas) {
+        zodSchemaMapper.set(target, [
+            Object.freeze({
+                ...convertedOptions,
+                schema: mainSchema
+            })
+        ]);
+    } else if (cachedIndex < 0) {
+        cachedSchemas.push(
+            Object.freeze({
+                ...convertedOptions,
+                schema: mainSchema
+            })
+        );
+
+        zodSchemaMapper.set(target, cachedSchemas);
+    }
+
+    const validation = mainSchema.safeParse(data);
+
+    if (!validation.success) {
+        throw validation.error.issues;
+    }
+
+    return validation.data as TInfer<TExtendOptions, TInstance>;
+};
+
+const generateInstanceOfSchema = (
+    target: new (...args: any[]) => Object,
+    options: TInstanceOfOptions
+) => {
     const instanceZodSchema = inferZodSchema(target);
     const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
@@ -185,11 +93,6 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
         Object.assign(instance, transformData);
         return instance;
     });
-    const validation = transformSchema.safeParse(data);
 
-    if (!validation.success) {
-        throw validation.error.issues;
-    }
-
-    return validation.data as TInfer<TExtendOptions, TInstance>;
+    return transformSchema;
 };

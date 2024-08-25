@@ -8,7 +8,8 @@ exports.instanceOfKey = Symbol.for("__bool:entity:instanceOf__");
  * @returns
  */
 const InstanceOf = (initializer, options) => (target, propertyKey) => {
-    const metadata = Reflect.getOwnMetadata(exports.instanceOfKey, target.constructor, propertyKey) || {
+    const metadata = Reflect.getOwnMetadata(exports.instanceOfKey, target.constructor) ||
+        Reflect.getOwnMetadata(exports.instanceOfKey, Object.getPrototypeOf(target.constructor)) || {
         [propertyKey]: []
     };
     if (propertyKey in metadata) {
