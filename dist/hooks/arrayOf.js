@@ -59,9 +59,7 @@ const arrayOf = (data, target, options) => {
         }));
         zodSchemaMapper.set(target, cachedSchemas);
     }
-    const validation = "passthrough" in mainSchema && typeof mainSchema.passthrough === "function"
-        ? mainSchema.passthrough().safeParse(data)
-        : mainSchema.safeParse(data);
+    const validation = mainSchema.safeParse(data);
     if (!validation.success) {
         throw validation.error.issues;
     }
