@@ -6,12 +6,14 @@ import { SecondEntity } from "./second.entity";
 try {
     const ins = instanceOf(
         {
+            // _id: new Types.ObjectId(),
             info: {
                 content: "12123123",
                 slug: "sdjfsjhfkjshdf",
                 viewCount: 100
             },
             __firstEntity: {
+                // _id: new Types.ObjectId(),
                 info: {
                     content: "12123123",
                     slug: "sdjfsjhfkjshdf",
@@ -19,13 +21,24 @@ try {
                 },
                 __secondEntities: [
                     {
+                        // _id: new Types.ObjectId(),
                         info: {
                             content: "12123123",
                             slug: "sdjfsjhfkjshdf",
                             viewCount: 200
+                        },
+                        __firstEntity: {
+                            // _id: new Types.ObjectId(),
+                            info: {
+                                content: "12123123",
+                                slug: "sdjfsjhfkjshdf",
+                                viewCount: 100
+                            },
+                            __secondEntities: []
                         }
                     },
                     {
+                        // _id: new Types.ObjectId(),
                         info: {
                             content: "12123123",
                             slug: "sdjfsjhfkjshdf",
@@ -33,6 +46,7 @@ try {
                         }
                     },
                     {
+                        // _id: new Types.ObjectId(),
                         info: {
                             content: "12123123",
                             slug: "sdjfsjhfkjshdf",
@@ -42,11 +56,7 @@ try {
                 ]
             }
         },
-        SecondEntity,
-        {
-            optional: true,
-            nullable: true
-        }
+        SecondEntity
     );
 
     // const arr = arrayOf(
@@ -76,7 +86,7 @@ try {
     //     SecondEntity
     // );
 
-    console.debug(ins?.__firstEntity?.__secondEntities);
+    console.debug(ins.__firstEntity?.__secondEntities);
 } catch (error) {
     console.error(error);
 }

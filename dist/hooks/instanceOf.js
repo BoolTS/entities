@@ -88,19 +88,22 @@ const inferZodSchema = (target) => {
                     const lazySchema = Zod.lazy(() => {
                         const classContructor = initializer();
                         const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                        const transformSchema = classConstructorSchema.transform((data) => {
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-                        const arrayOfSchema = Zod.array(transformSchema);
+                        const arrayOfSchema = Zod.array(classConstructorSchema);
                         const nullableSchema = !options?.nullable
                             ? arrayOfSchema
                             : arrayOfSchema.nullable();
                         const optionalSchema = !options?.optional
                             ? nullableSchema
                             : nullableSchema.optional();
-                        return optionalSchema;
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+                        return transformSchema;
                     });
                     zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
                         ? lazySchema
@@ -109,21 +112,24 @@ const inferZodSchema = (target) => {
                 }
                 const classContructor = initializer;
                 const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                const transformSchema = classConstructorSchema.transform((data) => {
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
-                const arrayOfSchema = Zod.array(transformSchema);
+                const arrayOfSchema = Zod.array(classConstructorSchema);
                 const nullableSchema = !options?.nullable
                     ? arrayOfSchema
                     : arrayOfSchema.nullable();
                 const optionalSchema = !options?.optional
                     ? nullableSchema
                     : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? optionalSchema
-                    : zodSchemaMetadata[key].or(optionalSchema);
+                    ? transformSchema
+                    : zodSchemaMetadata[key].or(transformSchema);
                 return;
             });
         }
@@ -136,15 +142,14 @@ const instanceOf = (data, target, options) => {
         throw Error("The constructor has not registered the entity metadata.");
     }
     const instanceZodSchema = (0, exports.inferZodSchema)(target);
-    // Update acceptable schema
     const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const transformSchema = optionalSchema.transform((data) => {
-        if (!data) {
-            return data;
+    const transformSchema = optionalSchema.transform((transformData) => {
+        if (!transformData) {
+            return transformData;
         }
         const instance = new target();
-        Object.assign(instance, data);
+        Object.assign(instance, transformData);
         return instance;
     });
     const validation = transformSchema.safeParse(data);

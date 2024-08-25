@@ -106,20 +106,24 @@ export const inferZodSchema = <TInstance extends Object>(
                     const lazySchema = Zod.lazy(() => {
                         const classContructor = (initializer as TFunctionReturnContructor<any>)();
                         const classConstructorSchema = inferZodSchema(classContructor);
-                        const transformSchema = classConstructorSchema.transform((data) => {
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-                        const arrayOfSchema = Zod.array(transformSchema);
+                        const arrayOfSchema = Zod.array(classConstructorSchema);
                         const nullableSchema = !options?.nullable
                             ? arrayOfSchema
                             : arrayOfSchema.nullable();
                         const optionalSchema = !options?.optional
                             ? nullableSchema
                             : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
 
-                        return optionalSchema;
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+
+                        return transformSchema;
                     });
 
                     zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
@@ -131,22 +135,26 @@ export const inferZodSchema = <TInstance extends Object>(
 
                 const classContructor = initializer as TConstructor<any>;
                 const classConstructorSchema = inferZodSchema(classContructor);
-                const transformSchema = classConstructorSchema.transform((data) => {
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
-                const arrayOfSchema = Zod.array(transformSchema);
+                const arrayOfSchema = Zod.array(classConstructorSchema);
                 const nullableSchema = !options?.nullable
                     ? arrayOfSchema
                     : arrayOfSchema.nullable();
                 const optionalSchema = !options?.optional
                     ? nullableSchema
                     : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
 
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? optionalSchema
-                    : zodSchemaMetadata[key].or(optionalSchema);
+                    ? transformSchema
+                    : zodSchemaMetadata[key].or(transformSchema);
 
                 return;
             });
@@ -166,17 +174,15 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
     }
 
     const instanceZodSchema = inferZodSchema(target);
-
-    // Update acceptable schema
     const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const transformSchema = optionalSchema.transform((data) => {
-        if (!data) {
-            return data;
+    const transformSchema = optionalSchema.transform((transformData) => {
+        if (!transformData) {
+            return transformData;
         }
 
         const instance = new target();
-        Object.assign(instance, data);
+        Object.assign(instance, transformData);
         return instance;
     });
     const validation = transformSchema.safeParse(data);
