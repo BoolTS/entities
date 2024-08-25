@@ -1,5 +1,5 @@
-import { TOptions } from "../hooks/instanceOf";
-export declare const arrayOfKey = "__bool:entity:arrayOf__";
+import { TOptions } from "./instanceOf";
+export declare const arrayOfKey: unique symbol;
 /**
  *
  * @param path

@@ -1,6 +1,8 @@
 import * as Zod from "zod";
 
-export const zodSchemaKey = "__bool:entity:zodSchema__";
+export type TMetadata = Record<string, Zod.Schema>;
+
+export const zodSchemaKey = Symbol.for("__bool:entity:zodSchema__");
 
 /**
  *
@@ -8,18 +10,9 @@ export const zodSchemaKey = "__bool:entity:zodSchema__";
  * @returns
  */
 export const ZodSchema = (schema: Zod.Schema) => (target: Object, propertyKey: string) => {
-    let tmpValue: Zod.output<typeof schema> | undefined = undefined;
+    const metadata: TMetadata = Reflect.getOwnMetadata(zodSchemaKey, target.constructor) || {};
 
-    Object.defineProperty(target, propertyKey, {
-        get: () => tmpValue,
-        set: (newValue: any) => {
-            const validation = schema.safeParse(newValue);
+    metadata[propertyKey] = schema;
 
-            if (!validation.success) {
-                throw validation.error.issues;
-            }
-
-            tmpValue = newValue;
-        }
-    });
+    Reflect.defineMetadata(zodSchemaKey, metadata, target.constructor);
 };

@@ -27,25 +27,25 @@ exports.arrayOf = void 0;
 const Zod = __importStar(require("zod"));
 const entity_1 = require("../decorators/entity");
 const instanceOf_1 = require("./instanceOf");
-const acceptableSchema = Zod.array(Zod.record(Zod.any()));
 const arrayOf = (data, target, options) => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entity_1.entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
-    // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable
-        ? acceptableSchema
-        : acceptableSchema.nullable();
-    const optionalAcceptableSchema = !options?.optional
-        ? nullableAcceptableSchema
-        : nullableAcceptableSchema.optional();
-    const validation = optionalAcceptableSchema.safeParse(data);
+    const instanceZodSchema = (0, instanceOf_1.inferZodSchema)(target);
+    const transformSchema = instanceZodSchema.transform((data) => {
+        const instance = new target();
+        Object.assign(instance, data);
+        return instance;
+    });
+    const arrayOfInstanceZodSchema = Zod.array(transformSchema);
+    const nullableSchema = !options?.nullable
+        ? arrayOfInstanceZodSchema
+        : arrayOfInstanceZodSchema.nullable();
+    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
+    const validation = optionalSchema.safeParse(data);
     if (!validation.success) {
         throw validation.error.issues;
     }
-    if (!validation.data) {
-        return validation.data;
-    }
-    return validation.data.map((x) => (0, instanceOf_1.instanceOf)(x, target));
+    return validation.data;
 };
 exports.arrayOf = arrayOf;

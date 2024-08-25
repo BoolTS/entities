@@ -23,30 +23,141 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.instanceOf = void 0;
+exports.instanceOf = exports.inferZodSchema = void 0;
 const Zod = __importStar(require("zod"));
-const entity_1 = require("../decorators/entity");
-const acceptableSchema = Zod.record(Zod.any());
+const decorators_1 = require("../decorators");
+const inferZodSchema = (target) => {
+    const zodSchemaMetadata = Reflect.getOwnMetadata(decorators_1.zodSchemaKey, target) || {};
+    const instanceOfMetadata = Reflect.getOwnMetadata(decorators_1.instanceOfKey, target);
+    const arrayOfMetadata = Reflect.getOwnMetadata(decorators_1.arrayOfKey, target);
+    if (instanceOfMetadata) {
+        for (const key in instanceOfMetadata) {
+            instanceOfMetadata[key].forEach(({ initializer, options }) => {
+                if (!initializer.prototype) {
+                    const lazySchema = Zod.lazy(() => {
+                        const classContructor = initializer();
+                        const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
+                        const nullableSchema = !options?.nullable
+                            ? classConstructorSchema
+                            : classConstructorSchema.nullable();
+                        const optionalSchema = !options?.optional
+                            ? nullableSchema
+                            : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+                        return transformSchema;
+                    });
+                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                        ? lazySchema
+                        : zodSchemaMetadata[key].or(lazySchema);
+                    return;
+                }
+                const classContructor = initializer;
+                const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
+                const nullableSchema = !options?.nullable
+                    ? classConstructorSchema
+                    : classConstructorSchema.nullable();
+                const optionalSchema = !options?.optional
+                    ? nullableSchema
+                    : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
+                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                    ? transformSchema
+                    : zodSchemaMetadata[key].or(transformSchema);
+                return;
+            });
+        }
+    }
+    if (arrayOfMetadata) {
+        for (const key in arrayOfMetadata) {
+            arrayOfMetadata[key].forEach(({ initializer, options }) => {
+                if (!initializer.prototype) {
+                    const lazySchema = Zod.lazy(() => {
+                        const classContructor = initializer();
+                        const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
+                        const nullableSchema = !options?.nullable
+                            ? classConstructorSchema
+                            : classConstructorSchema.nullable();
+                        const optionalSchema = !options?.optional
+                            ? nullableSchema
+                            : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+                        return Zod.array(transformSchema);
+                    });
+                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                        ? lazySchema
+                        : zodSchemaMetadata[key].or(lazySchema);
+                    return;
+                }
+                const classContructor = initializer;
+                const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
+                const nullableSchema = !options?.nullable
+                    ? classConstructorSchema
+                    : classConstructorSchema.nullable();
+                const optionalSchema = !options?.optional
+                    ? nullableSchema
+                    : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
+                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                    ? Zod.array(transformSchema)
+                    : zodSchemaMetadata[key].or(Zod.array(transformSchema));
+                return;
+            });
+        }
+    }
+    return Zod.object(zodSchemaMetadata);
+};
+exports.inferZodSchema = inferZodSchema;
 const instanceOf = (data, target, options) => {
-    if (!Reflect.getOwnMetadataKeys(target).includes(entity_1.entityKey)) {
+    if (!Reflect.getOwnMetadataKeys(target).includes(decorators_1.entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
+    const instanceZodSchema = (0, exports.inferZodSchema)(target);
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable
-        ? acceptableSchema
-        : acceptableSchema.nullable();
-    const optionalAcceptableSchema = !options?.optional
-        ? nullableAcceptableSchema
-        : nullableAcceptableSchema.optional();
-    const validation = optionalAcceptableSchema.safeParse(data);
+    const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
+    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
+    const transformSchema = optionalSchema.transform((data) => {
+        if (!data) {
+            return data;
+        }
+        const instance = new target();
+        Object.assign(instance, data);
+        return instance;
+    });
+    const validation = transformSchema.safeParse(data);
     if (!validation.success) {
         throw validation.error.issues;
     }
     if (!validation.data) {
         return validation.data;
     }
-    const instance = new target();
-    Object.assign(instance, validation.data);
-    return instance;
+    return validation.data;
 };
 exports.instanceOf = instanceOf;

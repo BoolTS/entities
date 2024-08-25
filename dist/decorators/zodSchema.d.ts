@@ -1,5 +1,6 @@
 import * as Zod from "zod";
-export declare const zodSchemaKey = "__bool:entity:zodSchema__";
+export type TMetadata = Record<string, Zod.Schema>;
+export declare const zodSchemaKey: unique symbol;
 /**
  *
  * @param path

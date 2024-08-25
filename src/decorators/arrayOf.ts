@@ -1,30 +1,53 @@
 import * as Zod from "zod";
 
 import { arrayOf } from "../hooks/arrayOf";
-import { TOptions } from "../hooks/instanceOf";
+import { TMetadata as TInstanceOfMetdata, TOptions } from "./instanceOf";
 
-
-export const arrayOfKey = "__bool:entity:arrayOf__";
+export const arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
 
 /**
- * 
- * @param path 
- * @returns 
+ *
+ * @param path
+ * @returns
  */
-export const ArrayOf = <T extends Object>(
-    initializer: (() => new (...args: any[]) => T) | (new (...args: any[]) => T),
-    options?: TOptions
-) => (
-    target: Object,
-    propertyKey: string
-) => {
-        let tmpValue: Array<T> | null | undefined = undefined;
+export const ArrayOf =
+    <T extends Object>(
+        initializer: (() => new (...args: any[]) => T) | (new (...args: any[]) => T),
+        options?: TOptions
+    ) =>
+    (target: Object, propertyKey: string) => {
+        const metadata: TInstanceOfMetdata<T> = Reflect.getOwnMetadata(
+            arrayOfKey,
+            target.constructor,
+            propertyKey
+        ) || {
+            [propertyKey]: [
+                {
+                    initializer: initializer,
+                    options: options
+                }
+            ]
+        };
 
-        Object.defineProperty(target, propertyKey, {
-            get: () => tmpValue,
-            set: (newValue: any) => {
-                tmpValue = arrayOf(newValue, !initializer.prototype ?
-                    (initializer as () => new (...args: any[]) => T)() : (initializer as new (...args: any[]) => T), options);
-            }
-        });
-    }
+        if (propertyKey in metadata) {
+            metadata[propertyKey].push({
+                initializer: initializer,
+                options: options
+            });
+        }
+
+        Reflect.defineMetadata(arrayOfKey, metadata, target.constructor);
+
+        // Object.defineProperty(target, propertyKey, {
+        //     get: () => tmpValue,
+        //     set: (newValue: any) => {
+        //         tmpValue = arrayOf(
+        //             newValue,
+        //             !initializer.prototype
+        //                 ? (initializer as () => new (...args: any[]) => T)()
+        //                 : (initializer as new (...args: any[]) => T),
+        //             options
+        //         );
+        //     }
+        // });
+    };

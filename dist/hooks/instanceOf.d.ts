@@ -1,10 +1,13 @@
-export type TOptions = Partial<{
-    nullable: boolean;
-    optional: boolean;
+import * as Zod from "zod";
+import { TInstanceOfOptions, TZodSchemaMetadata } from "../decorators";
+type TInfer<TExtendOptions extends TInstanceOfOptions, TReturnType> = TExtendOptions extends undefined ? TReturnType : TExtendOptions["nullable"] extends true ? TExtendOptions["optional"] extends true ? TReturnType | null | undefined : TReturnType | null : TExtendOptions["optional"] extends true ? TReturnType | undefined : TReturnType;
+export declare const inferZodSchema: <TInstance extends Object>(target: new (...args: any[]) => TInstance) => Zod.ZodObject<TZodSchemaMetadata, "strip", Zod.ZodTypeAny, {
+    [x: string]: any;
+}, {
+    [x: string]: any;
 }>;
-type TInfer<TExtendOptionss extends TOptions, TReturnType> = TExtendOptionss extends undefined ? TReturnType : TExtendOptionss["nullable"] extends true ? TExtendOptionss["optional"] extends true ? TReturnType | null | undefined : TReturnType | null : TExtendOptionss["optional"] extends true ? TReturnType | undefined : TReturnType;
-export declare const instanceOf: <TInstance extends Object, TExtendOptionss extends Partial<{
+export declare const instanceOf: <TInstance extends Object, TExtendOptions extends Partial<{
     nullable: boolean;
     optional: boolean;
-}>>(data: unknown, target: new (...args: any[]) => TInstance, options?: TExtendOptionss) => TInfer<TExtendOptionss, TInstance>;
+}>>(data: unknown, target: new (...args: any[]) => TInstance, options?: TExtendOptions) => TInfer<TExtendOptions, TInstance>;
 export {};

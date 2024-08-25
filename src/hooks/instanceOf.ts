@@ -1,55 +1,199 @@
 import * as Zod from "zod";
 
-import { entityKey } from "../decorators/entity";
+import {
+    arrayOfKey,
+    entityKey,
+    instanceOfKey,
+    TConstructor,
+    TFunctionReturnContructor,
+    TInstanceOfMetadata,
+    TInstanceOfOptions,
+    TZodSchemaMetadata,
+    zodSchemaKey
+} from "../decorators";
 
-export type TOptions = Partial<{
-    nullable: boolean;
-    optional: boolean;
-}>;
-
-const acceptableSchema = Zod.record(Zod.any());
-
-type TInfer<TExtendOptionss extends TOptions, TReturnType> = TExtendOptionss extends undefined
+type TInfer<
+    TExtendOptions extends TInstanceOfOptions,
+    TReturnType
+> = TExtendOptions extends undefined
     ? TReturnType
-    : TExtendOptionss["nullable"] extends true
-    ? TExtendOptionss["optional"] extends true
+    : TExtendOptions["nullable"] extends true
+    ? TExtendOptions["optional"] extends true
         ? TReturnType | null | undefined
         : TReturnType | null
-    : TExtendOptionss["optional"] extends true
+    : TExtendOptions["optional"] extends true
     ? TReturnType | undefined
     : TReturnType;
 
-export const instanceOf = <TInstance extends Object, TExtendOptionss extends TOptions>(
+export const inferZodSchema = <TInstance extends Object>(
+    target: new (...args: any[]) => TInstance
+) => {
+    const zodSchemaMetadata: TZodSchemaMetadata =
+        Reflect.getOwnMetadata(zodSchemaKey, target) || {};
+    const instanceOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
+        instanceOfKey,
+        target
+    );
+    const arrayOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
+        arrayOfKey,
+        target
+    );
+
+    if (instanceOfMetadata) {
+        for (const key in instanceOfMetadata) {
+            instanceOfMetadata[key].forEach(({ initializer, options }) => {
+                if (!initializer.prototype) {
+                    const lazySchema = Zod.lazy(() => {
+                        const classContructor = (initializer as TFunctionReturnContructor<any>)();
+                        const classConstructorSchema = inferZodSchema(classContructor);
+                        const nullableSchema = !options?.nullable
+                            ? classConstructorSchema
+                            : classConstructorSchema.nullable();
+                        const optionalSchema = !options?.optional
+                            ? nullableSchema
+                            : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
+
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+
+                        return transformSchema;
+                    });
+
+                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                        ? lazySchema
+                        : zodSchemaMetadata[key].or(lazySchema);
+
+                    return;
+                }
+
+                const classContructor = initializer as TConstructor<any>;
+                const classConstructorSchema = inferZodSchema(classContructor);
+                const nullableSchema = !options?.nullable
+                    ? classConstructorSchema
+                    : classConstructorSchema.nullable();
+                const optionalSchema = !options?.optional
+                    ? nullableSchema
+                    : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
+
+                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                    ? transformSchema
+                    : zodSchemaMetadata[key].or(transformSchema);
+
+                return;
+            });
+        }
+    }
+
+    if (arrayOfMetadata) {
+        for (const key in arrayOfMetadata) {
+            arrayOfMetadata[key].forEach(({ initializer, options }) => {
+                if (!initializer.prototype) {
+                    const lazySchema = Zod.lazy(() => {
+                        const classContructor = (initializer as TFunctionReturnContructor<any>)();
+                        const classConstructorSchema = inferZodSchema(classContructor);
+                        const nullableSchema = !options?.nullable
+                            ? classConstructorSchema
+                            : classConstructorSchema.nullable();
+                        const optionalSchema = !options?.optional
+                            ? nullableSchema
+                            : nullableSchema.optional();
+                        const transformSchema = optionalSchema.transform((data) => {
+                            if (!data) {
+                                return data;
+                            }
+
+                            const instance = new classContructor();
+                            Object.assign(instance, data);
+                            return instance;
+                        });
+
+                        return Zod.array(transformSchema);
+                    });
+
+                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                        ? lazySchema
+                        : zodSchemaMetadata[key].or(lazySchema);
+
+                    return;
+                }
+
+                const classContructor = initializer as TConstructor<any>;
+                const classConstructorSchema = inferZodSchema(classContructor);
+                const nullableSchema = !options?.nullable
+                    ? classConstructorSchema
+                    : classConstructorSchema.nullable();
+                const optionalSchema = !options?.optional
+                    ? nullableSchema
+                    : nullableSchema.optional();
+                const transformSchema = optionalSchema.transform((data) => {
+                    if (!data) {
+                        return data;
+                    }
+
+                    const instance = new classContructor();
+                    Object.assign(instance, data);
+                    return instance;
+                });
+
+                zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
+                    ? Zod.array(transformSchema)
+                    : zodSchemaMetadata[key].or(Zod.array(transformSchema));
+
+                return;
+            });
+        }
+    }
+
+    return Zod.object(zodSchemaMetadata);
+};
+
+export const instanceOf = <TInstance extends Object, TExtendOptions extends TInstanceOfOptions>(
     data: unknown,
     target: new (...args: any[]) => TInstance,
-    options?: TExtendOptionss
-): TInfer<TExtendOptionss, TInstance> => {
+    options?: TExtendOptions
+): TInfer<TExtendOptions, TInstance> => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entityKey)) {
         throw Error("The constructor has not registered the entity metadata.");
     }
 
+    const instanceZodSchema = inferZodSchema(target);
+
     // Update acceptable schema
-    const nullableAcceptableSchema = !options?.nullable
-        ? acceptableSchema
-        : acceptableSchema.nullable();
+    const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
+    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
+    const transformSchema = optionalSchema.transform((data) => {
+        if (!data) {
+            return data;
+        }
 
-    const optionalAcceptableSchema = !options?.optional
-        ? nullableAcceptableSchema
-        : nullableAcceptableSchema.optional();
-
-    const validation = optionalAcceptableSchema.safeParse(data);
+        const instance = new target();
+        Object.assign(instance, data);
+        return instance;
+    });
+    const validation = transformSchema.safeParse(data);
 
     if (!validation.success) {
         throw validation.error.issues;
     }
 
     if (!validation.data) {
-        return validation.data as TInfer<TExtendOptionss, TInstance>;
+        return validation.data as TInfer<TExtendOptions, TInstance>;
     }
 
-    const instance = new target();
-
-    Object.assign(instance, validation.data);
-
-    return instance as TInfer<TExtendOptionss, TInstance>;
+    return validation.data as TInfer<TExtendOptions, TInstance>;
 };
