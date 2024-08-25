@@ -10,10 +10,11 @@ export const zodSchemaKey = Symbol.for("__bool:entity:zodSchema__");
  * @returns
  */
 export const ZodSchema = (schema: Zod.Schema) => (target: Object, propertyKey: string) => {
-    const metadata: TMetadata =
-        Reflect.getOwnMetadata(zodSchemaKey, target.constructor) ||
-        Reflect.getOwnMetadata(zodSchemaKey, Object.getPrototypeOf(target.constructor)) ||
-        {};
+    const metadata: TMetadata = {
+        ...(Reflect.getOwnMetadata(zodSchemaKey, Object.getPrototypeOf(target.constructor)) ||
+            undefined),
+        ...(Reflect.getOwnMetadata(zodSchemaKey, target.constructor) || undefined)
+    };
 
     metadata[propertyKey] = schema;
 

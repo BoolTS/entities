@@ -13,20 +13,27 @@ export const ArrayOf =
         options?: TOptions
     ) =>
     (target: Object, propertyKey: string) => {
-        const metadata: TInstanceOfMetdata<T> = Reflect.getOwnMetadata(
-            arrayOfKey,
-            target.constructor
-        ) ||
-            Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) || {
-                [propertyKey]: []
-            };
+        const metadata: TInstanceOfMetdata<T> = {
+            ...(Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) ||
+                undefined),
+            ...(Reflect.getOwnMetadata(arrayOfKey, target.constructor) || undefined)
+        };
 
-        if (propertyKey in metadata) {
-            metadata[propertyKey].push({
-                initializer: initializer,
-                options: options
-            });
-        }
+        metadata[propertyKey] =
+            propertyKey in metadata
+                ? [
+                      ...metadata[propertyKey],
+                      {
+                          initializer,
+                          options
+                      }
+                  ]
+                : [
+                      {
+                          initializer,
+                          options
+                      }
+                  ];
 
         Reflect.defineMetadata(arrayOfKey, metadata, target.constructor);
     };

@@ -21,9 +21,7 @@ export const inferZodSchema = <TInstance extends Object>(
     }
 
     const zodSchemaMetadata: TZodSchemaMetadata =
-        Reflect.getOwnMetadata(zodSchemaKey, target) ||
-        Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
-        {};
+        Reflect.getOwnMetadata(zodSchemaKey, target) || {};
     const instanceOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
         instanceOfKey,
         target

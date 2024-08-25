@@ -32,9 +32,7 @@ const inferZodSchema = (target) => {
     if (cachedSchema) {
         return cachedSchema;
     }
-    const zodSchemaMetadata = Reflect.getOwnMetadata(decorators_1.zodSchemaKey, target) ||
-        Reflect.getOwnMetadata(decorators_1.instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
-        {};
+    const zodSchemaMetadata = Reflect.getOwnMetadata(decorators_1.zodSchemaKey, target) || {};
     const instanceOfMetadata = Reflect.getOwnMetadata(decorators_1.instanceOfKey, target);
     const arrayOfMetadata = Reflect.getOwnMetadata(decorators_1.arrayOfKey, target);
     if (instanceOfMetadata) {

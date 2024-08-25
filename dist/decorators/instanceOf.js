@@ -8,16 +8,26 @@ exports.instanceOfKey = Symbol.for("__bool:entity:instanceOf__");
  * @returns
  */
 const InstanceOf = (initializer, options) => (target, propertyKey) => {
-    const metadata = Reflect.getOwnMetadata(exports.instanceOfKey, target.constructor) ||
-        Reflect.getOwnMetadata(exports.instanceOfKey, Object.getPrototypeOf(target.constructor)) || {
-        [propertyKey]: []
+    const metadata = {
+        ...(Reflect.getOwnMetadata(exports.instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
+            undefined),
+        ...(Reflect.getOwnMetadata(exports.instanceOfKey, target.constructor) || undefined)
     };
-    if (propertyKey in metadata) {
-        metadata[propertyKey].push({
-            initializer: initializer,
-            options: options
-        });
-    }
+    metadata[propertyKey] =
+        propertyKey in metadata
+            ? [
+                ...metadata[propertyKey],
+                {
+                    initializer,
+                    options
+                }
+            ]
+            : [
+                {
+                    initializer,
+                    options
+                }
+            ];
     Reflect.defineMetadata(exports.instanceOfKey, metadata, target.constructor);
 };
 exports.InstanceOf = InstanceOf;

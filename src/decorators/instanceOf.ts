@@ -27,17 +27,27 @@ export const InstanceOf =
         options?: TOptions
     ) =>
     (target: Object, propertyKey: string) => {
-        const metadata: TMetadata<T> = Reflect.getOwnMetadata(instanceOfKey, target.constructor) ||
-            Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) || {
-                [propertyKey]: []
-            };
+        const metadata: TMetadata<T> = {
+            ...(Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
+                undefined),
+            ...(Reflect.getOwnMetadata(instanceOfKey, target.constructor) || undefined)
+        };
 
-        if (propertyKey in metadata) {
-            metadata[propertyKey].push({
-                initializer: initializer,
-                options: options
-            });
-        }
+        metadata[propertyKey] =
+            propertyKey in metadata
+                ? [
+                      ...metadata[propertyKey],
+                      {
+                          initializer,
+                          options
+                      }
+                  ]
+                : [
+                      {
+                          initializer,
+                          options
+                      }
+                  ];
 
         Reflect.defineMetadata(instanceOfKey, metadata, target.constructor);
     };

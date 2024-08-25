@@ -8,16 +8,26 @@ exports.arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
  * @returns
  */
 const ArrayOf = (initializer, options) => (target, propertyKey) => {
-    const metadata = Reflect.getOwnMetadata(exports.arrayOfKey, target.constructor) ||
-        Reflect.getOwnMetadata(exports.arrayOfKey, Object.getPrototypeOf(target.constructor)) || {
-        [propertyKey]: []
+    const metadata = {
+        ...(Reflect.getOwnMetadata(exports.arrayOfKey, Object.getPrototypeOf(target.constructor)) ||
+            undefined),
+        ...(Reflect.getOwnMetadata(exports.arrayOfKey, target.constructor) || undefined)
     };
-    if (propertyKey in metadata) {
-        metadata[propertyKey].push({
-            initializer: initializer,
-            options: options
-        });
-    }
+    metadata[propertyKey] =
+        propertyKey in metadata
+            ? [
+                ...metadata[propertyKey],
+                {
+                    initializer,
+                    options
+                }
+            ]
+            : [
+                {
+                    initializer,
+                    options
+                }
+            ];
     Reflect.defineMetadata(exports.arrayOfKey, metadata, target.constructor);
 };
 exports.ArrayOf = ArrayOf;
