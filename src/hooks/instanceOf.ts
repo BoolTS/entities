@@ -1,5 +1,5 @@
 import { entityKey, TInstanceOfOptions } from "../decorators";
-import { inferZodSchema } from "../ultils";
+import { generateSchema, inferZodSchema } from "../ultils";
 
 type TInfer<
     TExtendOptions extends TInstanceOfOptions,
@@ -47,7 +47,7 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
           );
     const mainSchema =
         !cachedSchemas || cachedIndex < 0
-            ? generateInstanceOfSchema(target, convertedOptions)
+            ? generateSchema(target, convertedOptions, false)
             : cachedSchemas[cachedIndex].schema;
 
     if (!cachedSchemas) {
@@ -75,24 +75,4 @@ export const instanceOf = <TInstance extends Object, TExtendOptions extends TIns
     }
 
     return validation.data as TInfer<TExtendOptions, TInstance>;
-};
-
-const generateInstanceOfSchema = (
-    target: new (...args: any[]) => Object,
-    options: TInstanceOfOptions
-) => {
-    const instanceZodSchema = inferZodSchema(target);
-    const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
-    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const transformSchema = optionalSchema.transform((transformData) => {
-        if (!transformData) {
-            return transformData;
-        }
-
-        const instance = new target();
-        Object.assign(instance, transformData);
-        return instance;
-    });
-
-    return transformSchema;
 };

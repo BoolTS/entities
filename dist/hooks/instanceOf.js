@@ -18,7 +18,7 @@ const instanceOf = (data, target, options) => {
         : cachedSchemas.findIndex((schema) => schema.optional === convertedOptions.optional &&
             schema.nullable === convertedOptions.nullable);
     const mainSchema = !cachedSchemas || cachedIndex < 0
-        ? generateInstanceOfSchema(target, convertedOptions)
+        ? (0, ultils_1.generateSchema)(target, convertedOptions, false)
         : cachedSchemas[cachedIndex].schema;
     if (!cachedSchemas) {
         zodSchemaMapper.set(target, [
@@ -42,17 +42,3 @@ const instanceOf = (data, target, options) => {
     return validation.data;
 };
 exports.instanceOf = instanceOf;
-const generateInstanceOfSchema = (target, options) => {
-    const instanceZodSchema = (0, ultils_1.inferZodSchema)(target);
-    const nullableSchema = !options?.nullable ? instanceZodSchema : instanceZodSchema.nullable();
-    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
-    const transformSchema = optionalSchema.transform((transformData) => {
-        if (!transformData) {
-            return transformData;
-        }
-        const instance = new target();
-        Object.assign(instance, transformData);
-        return instance;
-    });
-    return transformSchema;
-};

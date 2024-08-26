@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inferZodSchema = void 0;
+exports.generateSchema = exports.inferZodSchema = void 0;
 const Zod = __importStar(require("zod"));
 const decorators_1 = require("../decorators");
 const zodSchemaMapper = new Map();
@@ -38,50 +38,12 @@ const inferZodSchema = (target) => {
     if (instanceOfMetadata) {
         for (const key in instanceOfMetadata) {
             instanceOfMetadata[key].forEach(({ initializer, options }) => {
-                if (!initializer.prototype) {
-                    const lazySchema = Zod.lazy(() => {
-                        const classContructor = initializer();
-                        const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                        const nullableSchema = !options?.nullable
-                            ? classConstructorSchema
-                            : classConstructorSchema.nullable();
-                        const optionalSchema = !options?.optional
-                            ? nullableSchema
-                            : nullableSchema.optional();
-                        const transformSchema = optionalSchema.transform((data) => {
-                            if (!data) {
-                                return data;
-                            }
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-                        return transformSchema;
-                    });
-                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                        ? lazySchema
-                        : zodSchemaMetadata[key].or(lazySchema);
-                    return;
-                }
-                const classContructor = initializer;
-                const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                const nullableSchema = !options?.nullable
-                    ? classConstructorSchema
-                    : classConstructorSchema.nullable();
-                const optionalSchema = !options?.optional
-                    ? nullableSchema
-                    : nullableSchema.optional();
-                const transformSchema = optionalSchema.transform((data) => {
-                    if (!data) {
-                        return data;
-                    }
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
+                const schemaInfered = !initializer.prototype
+                    ? Zod.lazy(() => (0, exports.generateSchema)(initializer(), options, true))
+                    : (0, exports.generateSchema)(initializer(), options, true);
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? transformSchema
-                    : zodSchemaMetadata[key].or(transformSchema);
+                    ? schemaInfered
+                    : zodSchemaMetadata[key].or(schemaInfered);
                 return;
             });
         }
@@ -89,46 +51,12 @@ const inferZodSchema = (target) => {
     if (arrayOfMetadata) {
         for (const key in arrayOfMetadata) {
             arrayOfMetadata[key].forEach(({ initializer, options }) => {
-                if (!initializer.prototype) {
-                    const lazySchema = Zod.lazy(() => {
-                        const classContructor = initializer();
-                        const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                        const transformSchema = classConstructorSchema.transform((data) => {
-                            const instance = new classContructor();
-                            Object.assign(instance, data);
-                            return instance;
-                        });
-                        const arrayOfSchema = Zod.array(transformSchema);
-                        const nullableSchema = !options?.nullable
-                            ? arrayOfSchema
-                            : arrayOfSchema.nullable();
-                        const optionalSchema = !options?.optional
-                            ? nullableSchema
-                            : nullableSchema.optional();
-                        return optionalSchema;
-                    });
-                    zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                        ? lazySchema
-                        : zodSchemaMetadata[key].or(lazySchema);
-                    return;
-                }
-                const classContructor = initializer;
-                const classConstructorSchema = (0, exports.inferZodSchema)(classContructor);
-                const transformSchema = classConstructorSchema.transform((data) => {
-                    const instance = new classContructor();
-                    Object.assign(instance, data);
-                    return instance;
-                });
-                const arrayOfSchema = Zod.array(transformSchema);
-                const nullableSchema = !options?.nullable
-                    ? arrayOfSchema
-                    : arrayOfSchema.nullable();
-                const optionalSchema = !options?.optional
-                    ? nullableSchema
-                    : nullableSchema.optional();
+                const schemaInfered = !initializer.prototype
+                    ? Zod.lazy(() => (0, exports.generateSchema)(initializer(), options, true))
+                    : (0, exports.generateSchema)(initializer(), options, true);
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
-                    ? optionalSchema
-                    : zodSchemaMetadata[key].or(optionalSchema);
+                    ? schemaInfered
+                    : zodSchemaMetadata[key].or(schemaInfered);
                 return;
             });
         }
@@ -138,3 +66,16 @@ const inferZodSchema = (target) => {
     return resultSchema;
 };
 exports.inferZodSchema = inferZodSchema;
+const generateSchema = (target, options, isArray = false) => {
+    const instanceZodSchema = (0, exports.inferZodSchema)(target);
+    const transformSchema = instanceZodSchema.transform((transformData) => {
+        const instance = new target();
+        Object.assign(instance, transformData);
+        return instance;
+    });
+    const intermediateSchema = !isArray ? transformSchema : Zod.array(transformSchema);
+    const nullableSchema = !options?.nullable ? intermediateSchema : intermediateSchema.nullable();
+    const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
+    return optionalSchema;
+};
+exports.generateSchema = generateSchema;
