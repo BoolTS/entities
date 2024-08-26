@@ -50,7 +50,7 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstan
           );
     const mainSchema =
         !cachedSchemas || cachedIndex < 0
-            ? generateInstanceOfSchema(target, convertedOptions)
+            ? generateArrayOfSchema(target, convertedOptions)
             : cachedSchemas[cachedIndex].schema;
 
     if (!cachedSchemas) {
@@ -80,7 +80,7 @@ export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstan
     return validation.data as TInfer<TExtendOptions, TInstance>;
 };
 
-const generateInstanceOfSchema = (
+const generateArrayOfSchema = (
     target: new (...args: any[]) => Object,
     options: TInstanceOfOptions
 ) => {

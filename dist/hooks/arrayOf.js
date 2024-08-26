@@ -42,7 +42,7 @@ const arrayOf = (data, target, options) => {
         : cachedSchemas.findIndex((schema) => schema.optional === convertedOptions.optional &&
             schema.nullable === convertedOptions.nullable);
     const mainSchema = !cachedSchemas || cachedIndex < 0
-        ? generateInstanceOfSchema(target, convertedOptions)
+        ? generateArrayOfSchema(target, convertedOptions)
         : cachedSchemas[cachedIndex].schema;
     if (!cachedSchemas) {
         zodSchemaMapper.set(target, [
@@ -66,7 +66,7 @@ const arrayOf = (data, target, options) => {
     return validation.data;
 };
 exports.arrayOf = arrayOf;
-const generateInstanceOfSchema = (target, options) => {
+const generateArrayOfSchema = (target, options) => {
     const instanceZodSchema = (0, ultils_1.inferZodSchema)(target);
     const transformSchema = instanceZodSchema.transform((data) => {
         const instance = new target();
