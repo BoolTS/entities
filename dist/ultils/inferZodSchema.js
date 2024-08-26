@@ -39,8 +39,8 @@ const inferZodSchema = (target) => {
         for (const key in instanceOfMetadata) {
             instanceOfMetadata[key].forEach(({ initializer, options }) => {
                 const schemaInfered = !initializer.prototype
-                    ? Zod.lazy(() => (0, exports.generateSchema)(initializer(), options, true))
-                    : (0, exports.generateSchema)(initializer(), options, true);
+                    ? Zod.lazy(() => (0, exports.generateSchema)(initializer(), options, false))
+                    : (0, exports.generateSchema)(initializer(), options, false);
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
                     ? schemaInfered
                     : zodSchemaMetadata[key].or(schemaInfered);

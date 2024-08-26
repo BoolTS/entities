@@ -40,13 +40,13 @@ export const inferZodSchema = <TInstance extends Object>(
                           generateSchema(
                               (initializer as TFunctionReturnContructor<any>)(),
                               options,
-                              true
+                              false
                           )
                       )
                     : generateSchema(
                           (initializer as TFunctionReturnContructor<any>)(),
                           options,
-                          true
+                          false
                       );
 
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
