@@ -1,5 +1,6 @@
+import { Schema } from "zod";
 import { entityKey, TInstanceOfOptions } from "../decorators";
-import { generateSchema, inferZodSchema } from "../ultils";
+import { generateSchema } from "../ultils";
 
 type TInfer<
     TExtendOptions extends TInstanceOfOptions,
@@ -19,7 +20,7 @@ const zodSchemaMapper = new Map<
     Readonly<{
         optional: boolean;
         nullable: boolean;
-        schema: Zod.Schema;
+        schema: Schema;
     }>[]
 >();
 
