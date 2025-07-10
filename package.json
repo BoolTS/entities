@@ -1,6 +1,6 @@
 {
     "name": "@bool-ts/entities",
-    "version": "1.4.8",
+    "version": "1.4.9",
     "main": "dist/index.js",
     "repository": {
         "type": "git",
@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "reflect-metadata": "^0.2.2",
-        "zod": "^3.25.67"
+        "zod": "^3.25.76"
     },
     "scripts": {
         "test": "bun ./__test/index.ts",
