@@ -1,20 +1,13 @@
-import * as Zod from "zod";
-import {
-    TZodSchemaMetadata,
-    zodSchemaKey,
-    instanceOfKey,
-    TInstanceOfMetadata,
-    arrayOfKey,
-    TFunctionReturnContructor,
-    TConstructor,
-    TInstanceOfOptions
-} from "../decorators";
+import type { ZodType } from "zod/v4";
+import type { TInstanceOfMetadata, TInstanceOfOptions, TZodSchemaMetadata } from "../decorators";
+import type { TConstructor } from "./constructor";
 
-const zodSchemaMapper = new Map<new (...args: any[]) => any, Zod.Schema>();
+import { array, lazy, object } from "zod/v4";
+import { arrayOfKey, instanceOfKey, zodSchemaKey } from "../decorators";
 
-export const inferZodSchema = <TInstance extends Object>(
-    target: new (...args: any[]) => TInstance
-) => {
+const zodSchemaMapper = new Map<TConstructor<any>, ZodType>();
+
+export const inferZodSchema = <TInstance extends TConstructor<Object>>(target: TInstance) => {
     const cachedSchema = zodSchemaMapper.get(target);
 
     if (cachedSchema) {
@@ -36,18 +29,8 @@ export const inferZodSchema = <TInstance extends Object>(
         for (const key in instanceOfMetadata) {
             instanceOfMetadata[key].forEach(({ initializer, options }) => {
                 const schemaInfered = !initializer.prototype
-                    ? Zod.lazy(() =>
-                          generateSchema(
-                              (initializer as TFunctionReturnContructor<any>)(),
-                              options,
-                              false
-                          )
-                      )
-                    : generateSchema(
-                          (initializer as TFunctionReturnContructor<any>)(),
-                          options,
-                          false
-                      );
+                    ? lazy(() => generateSchema(initializer(), options, false))
+                    : generateSchema(initializer, options, false);
 
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
                     ? schemaInfered
@@ -62,18 +45,8 @@ export const inferZodSchema = <TInstance extends Object>(
         for (const key in arrayOfMetadata) {
             arrayOfMetadata[key].forEach(({ initializer, options }) => {
                 const schemaInfered = !initializer.prototype
-                    ? Zod.lazy(() =>
-                          generateSchema(
-                              (initializer as TFunctionReturnContructor<any>)(),
-                              options,
-                              true
-                          )
-                      )
-                    : generateSchema(
-                          (initializer as TFunctionReturnContructor<any>)(),
-                          options,
-                          true
-                      );
+                    ? lazy(() => generateSchema(initializer(), options, true))
+                    : generateSchema(initializer, options, true);
 
                 zodSchemaMetadata[key] = !(key in zodSchemaMetadata)
                     ? schemaInfered
@@ -84,23 +57,24 @@ export const inferZodSchema = <TInstance extends Object>(
         }
     }
 
-    const resultSchema = Zod.object(zodSchemaMetadata);
+    const resultSchema = object(zodSchemaMetadata);
     zodSchemaMapper.set(target, resultSchema);
     return resultSchema;
 };
 
-export const generateSchema = (
-    target: new (...args: any[]) => Object,
+export const generateSchema = <TInstance extends TConstructor<Object>>(
+    target: TInstance,
     options?: TInstanceOfOptions,
     isArray: boolean = false
 ) => {
     const instanceZodSchema = inferZodSchema(target);
+
     const transformSchema = instanceZodSchema.transform((transformData) => {
         const instance = new target();
         Object.assign(instance, transformData);
         return instance;
     });
-    const intermediateSchema = !isArray ? transformSchema : Zod.array(transformSchema);
+    const intermediateSchema = !isArray ? transformSchema : array(transformSchema);
     const nullableSchema = !options?.nullable ? intermediateSchema : intermediateSchema.nullable();
     const optionalSchema = !options?.optional ? nullableSchema : nullableSchema.optional();
 

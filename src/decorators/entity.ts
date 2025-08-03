@@ -1,5 +1,7 @@
+import type { TConstructor } from "../ultils";
 import type { TMetadata as TInstanceOfMetadata } from "./instanceOf";
 import type { TMetadata as TZodSchemaMetadata } from "./zodSchema";
+
 import { arrayOfKey } from "./arrayOf";
 import { instanceOfKey } from "./instanceOf";
 import { zodSchemaKey } from "./zodSchema";
@@ -7,8 +9,8 @@ import { zodSchemaKey } from "./zodSchema";
 export const entityKey = Symbol.for("__bool:entity__");
 
 export const Entity =
-    () =>
-    <T extends Object>(target: T, context?: ClassDecoratorContext) => {
+    <T extends TConstructor<Object>>() =>
+    (target: T, context?: ClassDecoratorContext) => {
         Reflect.defineMetadata(entityKey, undefined, target);
 
         // Zod

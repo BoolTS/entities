@@ -1,8 +1,8 @@
-import * as Zod from "zod";
+import * as Zod from "zod/v4";
 
-import { Entity, InstanceOf, ZodSchema } from "../src";
+import { Entity, InstanceOf, ZodSchema } from "@src";
+import { BaseEntity } from "./entity";
 import { FirstEntity } from "./first.entity";
-import { BaseEntity, idSchema } from "./entity";
 // import { Types } from "mongoose";
 
 // const mongoIdSchema = Zod.instanceof(Types.ObjectId);
@@ -16,10 +16,8 @@ const infoSchema = Zod.object({
 @Entity()
 export class SecondEntity extends BaseEntity {
     @ZodSchema(infoSchema)
-    public info?: Zod.infer<typeof infoSchema>;
+    info?: Zod.infer<typeof infoSchema>;
 
-    @InstanceOf(() => FirstEntity, { optional: true, nullable: true })
-    public __firstEntity: FirstEntity | null | undefined;
+    @InstanceOf(FirstEntity, { optional: true, nullable: true })
+    __firstEntity!: FirstEntity | null | undefined;
 }
-
-export default SecondEntity;

@@ -1,15 +1,14 @@
+import type { TConstructor } from "../ultils";
+
 export type TOptions = Partial<{
     nullable: boolean;
     optional: boolean;
 }>;
 
-export type TFunctionReturnContructor<T> = () => new (...args: any[]) => T;
-export type TConstructor<T> = new (...args: any[]) => T;
-
-export type TMetadata<T extends Object> = Record<
+export type TMetadata<T extends TConstructor<Object>> = Record<
     string,
     Array<{
-        initializer: TFunctionReturnContructor<T> | TConstructor<T>;
+        initializer: T | (() => T);
         options?: TOptions;
     }>
 >;
@@ -22,12 +21,12 @@ export const instanceOfKey = Symbol.for("__bool:entity:instanceOf__");
  * @returns
  */
 export const InstanceOf =
-    <T extends Object>(
-        initializer: (() => new (...args: any[]) => T) | (new (...args: any[]) => T),
+    <T extends Object, K extends TConstructor<Object>>(
+        initializer: K | (() => K),
         options?: TOptions
     ) =>
-    (target: Object, propertyKey: string) => {
-        const metadata: TMetadata<T> = {
+    (target: T, propertyKey: string) => {
+        const metadata: TMetadata<K> = {
             ...(Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
                 undefined),
             ...(Reflect.getOwnMetadata(instanceOfKey, target.constructor) || undefined)

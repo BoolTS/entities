@@ -1,92 +1,93 @@
-import * as Zod from "zod";
-
-import { arrayOf, instanceOf } from "../src";
+import { arrayOf } from "@src";
 import { SecondEntity } from "./second.entity";
 
 try {
-    const ins = instanceOf(
-        {
-            // _id: new Types.ObjectId(),
-            info: {
-                content: "12123123",
-                slug: "sdjfsjhfkjshdf",
-                viewCount: 100
+    // const ins = instanceOf(
+    //     {
+    //         id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //         info: {
+    //             content: "12123123",
+    //             slug: "sdjfsjhfkjshdf",
+    //             viewCount: 100
+    //         },
+    //         __firstEntity: {
+    //             id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //             info: {
+    //                 content: "12123123",
+    //                 slug: "sdjfsjhfkjshdf",
+    //                 viewCount: 100
+    //             },
+    //             __secondEntities: [
+    //                 {
+    //                     id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //                     info: {
+    //                         content: "12123123",
+    //                         slug: "sdjfsjhfkjshdf",
+    //                         viewCount: 200
+    //                     },
+    //                     __firstEntity: {
+    //                         id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //                         info: {
+    //                             content: "12123123",
+    //                             slug: "sdjfsjhfkjshdf",
+    //                             viewCount: 100
+    //                         },
+    //                         __secondEntities: []
+    //                     }
+    //                 },
+    //                 {
+    //                     id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //                     info: {
+    //                         content: "12123123",
+    //                         slug: "sdjfsjhfkjshdf",
+    //                         viewCount: 100
+    //                     }
+    //                 },
+    //                 {
+    //                     id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+    //                     info: {
+    //                         content: "12123123",
+    //                         slug: "sdjfsjhfkjshdf",
+    //                         viewCount: 100
+    //                     }
+    //                 }
+    //             ]
+    //         }
+    //     },
+    //     SecondEntity
+    // );
+
+    const arr = arrayOf(
+        [
+            {
+                id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+                info: {
+                    content: "12123123",
+                    slug: "sdjfsjhfkjshdf",
+                    viewCount: 200
+                }
             },
-            __firstEntity: {
-                // _id: new Types.ObjectId(),
+            {
+                id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
                 info: {
                     content: "12123123",
                     slug: "sdjfsjhfkjshdf",
                     viewCount: 100
-                },
-                __secondEntities: [
-                    {
-                        // _id: new Types.ObjectId(),
-                        info: {
-                            content: "12123123",
-                            slug: "sdjfsjhfkjshdf",
-                            viewCount: 200
-                        },
-                        __firstEntity: {
-                            // _id: new Types.ObjectId(),
-                            info: {
-                                content: "12123123",
-                                slug: "sdjfsjhfkjshdf",
-                                viewCount: 100
-                            },
-                            __secondEntities: []
-                        }
-                    },
-                    {
-                        // _id: new Types.ObjectId(),
-                        info: {
-                            content: "12123123",
-                            slug: "sdjfsjhfkjshdf",
-                            viewCount: 100
-                        }
-                    },
-                    {
-                        // _id: new Types.ObjectId(),
-                        info: {
-                            content: "12123123",
-                            slug: "sdjfsjhfkjshdf",
-                            viewCount: 100
-                        }
-                    }
-                ]
+                }
+            },
+            {
+                id: "8a639ab0-a240-412b-ad9b-8ff903f6f894",
+                info: {
+                    content: "12123123",
+                    slug: "sdjfsjhfkjshdf",
+                    viewCount: 100
+                }
             }
-        },
+        ],
         SecondEntity
     );
 
-    // const arr = arrayOf(
-    //     [
-    //         {
-    //             info: {
-    //                 content: "12123123",
-    //                 slug: "sdjfsjhfkjshdf",
-    //                 viewCount: 200
-    //             }
-    //         },
-    //         {
-    //             info: {
-    //                 content: "12123123",
-    //                 slug: "sdjfsjhfkjshdf",
-    //                 viewCount: 100
-    //             }
-    //         },
-    //         {
-    //             info: {
-    //                 content: "12123123",
-    //                 slug: "sdjfsjhfkjshdf",
-    //                 viewCount: 100
-    //             }
-    //         }
-    //     ],
-    //     SecondEntity
-    // );
-
-    console.debug(ins.__firstEntity?.__secondEntities);
+    console.log(arr);
 } catch (error) {
     console.error(JSON.stringify(error));
 }

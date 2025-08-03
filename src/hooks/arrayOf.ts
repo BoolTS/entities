@@ -1,5 +1,7 @@
-import { Schema } from "zod";
-import { TInstanceOfOptions } from "../decorators";
+import type { ZodType } from "zod/v4";
+import type { TInstanceOfOptions } from "../decorators";
+import type { TConstructor } from "../ultils";
+
 import { entityKey } from "../decorators/entity";
 import { generateSchema } from "../ultils";
 
@@ -17,17 +19,20 @@ type TInfer<
     : TReturnType[];
 
 const zodSchemaMapper = new Map<
-    new (...args: any[]) => any,
+    TConstructor<any>,
     Readonly<{
         optional: boolean;
         nullable: boolean;
-        schema: Schema;
+        schema: ZodType;
     }>[]
 >();
 
-export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstanceOfOptions>(
+export const arrayOf = <
+    TInstance extends TConstructor<Object>,
+    TExtendOptions extends TInstanceOfOptions
+>(
     data: unknown,
-    target: new (...args: any[]) => TInstance,
+    target: TInstance,
     options?: TExtendOptions
 ): TInfer<TExtendOptions, TInstance> => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entityKey)) {

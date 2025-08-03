@@ -1,6 +1,6 @@
 {
     "name": "@bool-ts/entities",
-    "version": "1.4.10",
+    "version": "1.5.0",
     "author": "Trần Đức Tâm (Neo)",
     "repository": {
         "type": "git",
@@ -9,6 +9,7 @@
     "main": "dist/index.js",
     "dependencies": {
         "reflect-metadata": "^0.2.2",
+        "typescript": "^5.9.2",
         "zod": "^4.0.14"
     },
     "devDependencies": {

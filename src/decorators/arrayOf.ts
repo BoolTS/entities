@@ -1,4 +1,5 @@
-import { TMetadata as TInstanceOfMetdata, TOptions } from "./instanceOf";
+import type { TConstructor } from "../ultils";
+import type { TMetadata as TInstanceOfMetdata, TOptions } from "./instanceOf";
 
 export const arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
 
@@ -8,12 +9,12 @@ export const arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
  * @returns
  */
 export const ArrayOf =
-    <T extends Object>(
-        initializer: (() => new (...args: any[]) => T) | (new (...args: any[]) => T),
+    <T extends Object, K extends TConstructor<Object>>(
+        initializer: K | (() => K),
         options?: TOptions
     ) =>
-    (target: Object, propertyKey: string) => {
-        const metadata: TInstanceOfMetdata<T> = {
+    (target: T, propertyKey: string) => {
+        const metadata: TInstanceOfMetdata<K> = {
             ...(Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) ||
                 undefined),
             ...(Reflect.getOwnMetadata(arrayOfKey, target.constructor) || undefined)
