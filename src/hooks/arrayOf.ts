@@ -27,12 +27,9 @@ const zodSchemaMapper = new Map<
     }>[]
 >();
 
-export const arrayOf = <
-    TInstance extends TConstructor<Object>,
-    TExtendOptions extends TInstanceOfOptions
->(
+export const arrayOf = <TInstance extends Object, TExtendOptions extends TInstanceOfOptions>(
     data: unknown,
-    target: TInstance,
+    target: TConstructor<TInstance>,
     options?: TExtendOptions
 ): TInfer<TExtendOptions, TInstance> => {
     if (!Reflect.getOwnMetadataKeys(target).includes(entityKey)) {
