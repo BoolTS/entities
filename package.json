@@ -1,6 +1,6 @@
 {
     "name": "@bool-ts/entities",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "author": "Trần Đức Tâm (Neo)",
     "repository": {
         "type": "git",
@@ -10,7 +10,7 @@
     "dependencies": {
         "reflect-metadata": "^0.2.2",
         "typescript": "^5.9.2",
-        "zod": "^4.0.14"
+        "zod": "^4.0.17"
     },
     "devDependencies": {
         "@types/bun": "latest"
