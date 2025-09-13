@@ -4,24 +4,26 @@
         "url": "https://github.com/BoolTS/entities/issues"
     },
     "dependencies": {
-        "reflect-metadata": "^0.2.2",
-        "typescript": "^5.9.2",
-        "zod": "^4.1.5"
+        "reflect-metadata": "^0.2.2"
     },
     "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "typescript": "^5.9.2"
     },
     "homepage": "https://github.com/BoolTS/entities#readme",
     "license": "MIT",
     "main": "dist/index.js",
     "name": "@bool-ts/entities",
+    "peerDependencies": {
+        "zod": "^4.1.8"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/BoolTS/entities.git"
     },
     "scripts": {
-        "build": "tsc --emitDeclarationOnly && bun build --minify --sourcemap ./src/index.ts --outdir ./dist",
+        "build": "tsc --emitDeclarationOnly && bun run ./app.build.ts",
         "test": "bun ./__test/index.ts"
     },
-    "version": "1.5.4"
+    "version": "1.5.5"
 }
