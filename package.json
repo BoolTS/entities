@@ -8,7 +8,7 @@
     },
     "devDependencies": {
         "@types/bun": "latest",
-        "typescript": "^5.9.2"
+        "typescript": "^5.9.3"
     },
     "homepage": "https://github.com/BoolTS/entities#readme",
     "license": "MIT",
@@ -25,5 +25,5 @@
         "build": "tsc --emitDeclarationOnly && bun run ./app.build.ts",
         "test": "bun ./__test/index.ts"
     },
-    "version": "1.5.5"
+    "version": "1.5.6"
 }

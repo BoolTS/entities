@@ -9,7 +9,7 @@ import { build } from "bun";
         outdir: `${currentDir}/dist`,
         publicPath: "../",
         sourcemap: "external",
-        target: "node",
+        target: "bun",
         format: "esm",
         packages: "external",
         minify: true
