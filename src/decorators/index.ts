@@ -1,7 +1,13 @@
-export { ArrayOf, arrayOfKey } from "./arrayOf";
+export { ArrayOf } from "./arrayOf";
+export { BigInt } from "./bigInt";
 export { Entity, entityKey } from "./entity";
-export { InstanceOf, instanceOfKey } from "./instanceOf";
-export { ZodSchema, zodSchemaKey } from "./zodSchema";
+export { InstanceOf } from "./instanceOf";
+export { Int } from "./int";
+export { Int32 } from "./int32";
+export { Int64 } from "./int64";
+export { Number } from "./number";
+export { ZodSchema } from "./zodSchema";
+export { ZodShape } from "./zodShape";
 
 export type {
     TMetadata as TInstanceOfMetadata,

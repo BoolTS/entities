@@ -2,9 +2,7 @@ import type { TConstructor } from "../ultils";
 import type { TMetadata as TInstanceOfMetadata } from "./instanceOf";
 import type { TMetadata as TZodSchemaMetadata } from "./zodSchema";
 
-import { arrayOfKey } from "./arrayOf";
-import { instanceOfKey } from "./instanceOf";
-import { zodSchemaKey } from "./zodSchema";
+import { Keys } from "../constants";
 
 export const entityKey = Symbol.for("__bool:entity__");
 
@@ -15,29 +13,31 @@ export const Entity =
 
         // Zod
         const zodMetadata: TZodSchemaMetadata = {
-            ...(Reflect.getOwnMetadata(zodSchemaKey, Object.getPrototypeOf(target)) || undefined),
-            ...(Reflect.getOwnMetadata(zodSchemaKey, target) || undefined)
+            ...(Reflect.getOwnMetadata(Keys.zodSchema, Object.getPrototypeOf(target)) || undefined),
+            ...(Reflect.getOwnMetadata(Keys.zodSchema, target) || undefined)
         };
 
-        Reflect.defineMetadata(zodSchemaKey, zodMetadata, target);
+        Reflect.defineMetadata(Keys.zodSchema, zodMetadata, target);
 
         // Instance of
         const instanceOfMetadata: TInstanceOfMetadata<T> = {
-            ...(Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
-                undefined),
-            ...(Reflect.getOwnMetadata(instanceOfKey, target) || undefined)
+            ...(Reflect.getOwnMetadata(
+                Keys.instanceOf,
+                Object.getPrototypeOf(target.constructor)
+            ) || undefined),
+            ...(Reflect.getOwnMetadata(Keys.instanceOf, target) || undefined)
         };
 
-        Reflect.defineMetadata(instanceOfKey, instanceOfMetadata, target);
+        Reflect.defineMetadata(Keys.instanceOf, instanceOfMetadata, target);
 
         // Array of
         const arrayOfMetadata: TInstanceOfMetadata<T> = {
-            ...(Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) ||
+            ...(Reflect.getOwnMetadata(Keys.arrayOf, Object.getPrototypeOf(target.constructor)) ||
                 undefined),
-            ...(Reflect.getOwnMetadata(arrayOfKey, target) || undefined)
+            ...(Reflect.getOwnMetadata(Keys.arrayOf, target) || undefined)
         };
 
-        Reflect.defineMetadata(arrayOfKey, arrayOfMetadata, target);
+        Reflect.defineMetadata(Keys.arrayOf, arrayOfMetadata, target);
 
         return target;
     };

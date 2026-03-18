@@ -11,12 +11,12 @@ type TInfer<
 > = TExtendOptions extends undefined
     ? TReturnType
     : TExtendOptions["nullable"] extends true
-    ? TExtendOptions["optional"] extends true
-        ? TReturnType | null | undefined
-        : TReturnType | null
-    : TExtendOptions["optional"] extends true
-    ? TReturnType | undefined
-    : TReturnType;
+      ? TExtendOptions["optional"] extends true
+          ? TReturnType | null | undefined
+          : TReturnType | null
+      : TExtendOptions["optional"] extends true
+        ? TReturnType | undefined
+        : TReturnType;
 
 const zodSchemaMapper = new Map<
     TConstructor<any>,

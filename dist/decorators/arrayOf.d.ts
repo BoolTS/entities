@@ -1,6 +1,5 @@
 import type { TConstructor } from "../ultils";
 import type { TOptions } from "./instanceOf";
-export declare const arrayOfKey: unique symbol;
 /**
  *
  * @param path

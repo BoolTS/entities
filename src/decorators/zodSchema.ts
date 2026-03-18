@@ -1,24 +1,7 @@
-import * as Zod from "zod/v4";
+import type { ZodType } from "zod/v4";
 
-export type TMetadata = Record<string | symbol, Zod.Schema>;
+import { metadataRegister } from "./@common";
 
-export const zodSchemaKey = Symbol.for("__bool:entity:zodSchema__");
+export type TMetadata = Record<string | symbol, ZodType>;
 
-/**
- *
- * @param path
- * @returns
- */
-export const ZodSchema =
-    <T extends Object>(schema: Zod.Schema) =>
-    (target: T, propertyKey: string) => {
-        const metadata: TMetadata = {
-            ...(Reflect.getOwnMetadata(zodSchemaKey, Object.getPrototypeOf(target.constructor)) ||
-                undefined),
-            ...(Reflect.getOwnMetadata(zodSchemaKey, target.constructor) || undefined)
-        };
-
-        metadata[propertyKey] = schema;
-
-        Reflect.defineMetadata(zodSchemaKey, metadata, target.constructor);
-    };
+export const ZodSchema = <T extends Object>(schema: ZodType) => metadataRegister<T>(schema);

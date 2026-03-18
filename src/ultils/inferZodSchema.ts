@@ -3,7 +3,7 @@ import type { TInstanceOfMetadata, TInstanceOfOptions, TZodSchemaMetadata } from
 import type { TConstructor } from "./constructor";
 
 import { array, lazy, object } from "zod/v4";
-import { arrayOfKey, instanceOfKey, zodSchemaKey } from "../decorators";
+import { Keys } from "../constants";
 
 const zodSchemaMapper = new Map<TConstructor<any>, ZodType>();
 
@@ -15,13 +15,13 @@ export const inferZodSchema = <TInstance extends TConstructor<Object>>(target: T
     }
 
     const zodSchemaMetadata: TZodSchemaMetadata =
-        Reflect.getOwnMetadata(zodSchemaKey, target) || {};
+        Reflect.getOwnMetadata(Keys.zodSchema, target) || {};
     const instanceOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
-        instanceOfKey,
+        Keys.instanceOf,
         target
     );
     const arrayOfMetadata: TInstanceOfMetadata<any> | undefined = Reflect.getOwnMetadata(
-        arrayOfKey,
+        Keys.arrayOf,
         target
     );
 

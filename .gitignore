@@ -129,4 +129,8 @@ out
 .yarn/install-state.gz
 .pnp.*
 
+# Custom
+.vscode
 .DS_Store
+.npmrc
+__test/

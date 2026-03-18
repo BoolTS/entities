@@ -1,5 +1,7 @@
 import type { TConstructor } from "../ultils";
 
+import { Keys } from "../constants";
+
 export type TOptions = Partial<{
     nullable: boolean;
     optional: boolean;
@@ -13,8 +15,6 @@ export type TMetadata<T extends TConstructor<Object>> = Record<
     }>
 >;
 
-export const instanceOfKey = Symbol.for("__bool:entity:instanceOf__");
-
 /**
  *
  * @param path
@@ -27,9 +27,11 @@ export const InstanceOf =
     ) =>
     (target: T, propertyKey: string) => {
         const metadata: TMetadata<K> = {
-            ...(Reflect.getOwnMetadata(instanceOfKey, Object.getPrototypeOf(target.constructor)) ||
-                undefined),
-            ...(Reflect.getOwnMetadata(instanceOfKey, target.constructor) || undefined)
+            ...(Reflect.getOwnMetadata(
+                Keys.instanceOf,
+                Object.getPrototypeOf(target.constructor)
+            ) || undefined),
+            ...(Reflect.getOwnMetadata(Keys.instanceOf, target.constructor) || undefined)
         };
 
         metadata[propertyKey] =
@@ -48,5 +50,5 @@ export const InstanceOf =
                       }
                   ];
 
-        Reflect.defineMetadata(instanceOfKey, metadata, target.constructor);
+        Reflect.defineMetadata(Keys.instanceOf, metadata, target.constructor);
     };

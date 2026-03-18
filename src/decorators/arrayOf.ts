@@ -1,7 +1,7 @@
 import type { TConstructor } from "../ultils";
 import type { TMetadata as TInstanceOfMetdata, TOptions } from "./instanceOf";
 
-export const arrayOfKey = Symbol.for("__bool:entity:arrayOf__");
+import { Keys } from "../constants";
 
 /**
  *
@@ -15,9 +15,9 @@ export const ArrayOf =
     ) =>
     (target: T, propertyKey: string) => {
         const metadata: TInstanceOfMetdata<K> = {
-            ...(Reflect.getOwnMetadata(arrayOfKey, Object.getPrototypeOf(target.constructor)) ||
+            ...(Reflect.getOwnMetadata(Keys.arrayOf, Object.getPrototypeOf(target.constructor)) ||
                 undefined),
-            ...(Reflect.getOwnMetadata(arrayOfKey, target.constructor) || undefined)
+            ...(Reflect.getOwnMetadata(Keys.arrayOf, target.constructor) || undefined)
         };
 
         metadata[propertyKey] =
@@ -36,5 +36,5 @@ export const ArrayOf =
                       }
                   ];
 
-        Reflect.defineMetadata(arrayOfKey, metadata, target.constructor);
+        Reflect.defineMetadata(Keys.arrayOf, metadata, target.constructor);
     };

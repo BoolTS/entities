@@ -7,7 +7,6 @@ export type TMetadata<T extends TConstructor<Object>> = Record<string, Array<{
     initializer: T | (() => T);
     options?: TOptions;
 }>>;
-export declare const instanceOfKey: unique symbol;
 /**
  *
  * @param path
